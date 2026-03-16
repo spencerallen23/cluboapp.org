@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — 11 Seller Sold</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.check{width:66px;height:66px;border-radius:50%;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.title{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1.2;margin-bottom:8px;}
+.sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.32);line-height:1.6;margin-bottom:18px;}
+.cta-btn{width:100%;height:52px;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#08080F;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+
+
+/* Nav */
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · 11 — Seller: Sold</div>
+
+<div class="phone">
+    <div class="top-bar">
+      <div class="top-title">Clubo</div>
+    </div>
+  <div class="screen">
+    <div class="check">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <path d="M6 15l6 6 12-12" stroke="#4ADE80" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="title" id="soldTitle">Sold.</div>
+    <div class="sub" id="soldSub">Transfer the ticket to the buyer via the venue's original platform.<br>Once done, confirm below to release payment.</div>
+
+    <div id="ordersLoading" style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:14px;">Loading your sales…</div>
+    <div id="ordersList" style="display:none;margin-bottom:18px;display:flex;flex-direction:column;gap:10px;"></div>
+
+    <div id="confirmArea" style="display:none;">
+      <div id="confirm-error" style="display:none;color:rgba(239,68,68,.85);font-size:12px;text-align:center;margin-bottom:8px;"></div>
+      <button id="confirmBtn" class="cta-btn" style="margin-bottom:10px;">I Have Transferred</button>
+    </div>
+    <a class="cta-btn" href="clubo-v2-04-home.html" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);">Back to Home</a>
+  </div>
+
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-09-sell.html">
+      <div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-15-balance.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.25)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-12-profile.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div>
+    </a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+<script>
+window.addEventListener('DOMContentLoaded', async function(){
+  var loadingEl   = document.getElementById('ordersLoading');
+  var listEl      = document.getElementById('ordersList');
+  var confirmArea = document.getElementById('confirmArea');
+  var confirmBtn  = document.getElementById('confirmBtn');
+  var errEl       = document.getElementById('confirm-error');
+
+  var pendingOrderId = localStorage.getItem('clubo_seller_pending_order');
+
+  try {
+    var orders = await ClubAuth.getSellerOrders();
+    // Show only PAID orders (need delivery confirmation)
+    var paidOrders = orders.filter(function(o){ return o.status === 'PAID'; });
+    loadingEl.style.display = 'none';
+
+    if (paidOrders.length === 0) {
+      listEl.style.display = 'none';
+      document.getElementById('soldTitle').textContent = 'No pending transfers.';
+      document.getElementById('soldSub').textContent = 'You have no sales waiting for ticket transfer.';
+      return;
+    }
+
+    listEl.style.display = 'flex';
+    listEl.innerHTML = paidOrders.map(function(o){
+      var selected = (o.id === pendingOrderId) ? 'border-color:rgba(255,255,255,.25);' : '';
+      return [
+        '<div class="order-card" data-order-id="' + o.id + '" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px 14px;cursor:pointer;' + selected + '">',
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">',
+            '<div style="font-size:13px;font-weight:500;color:#fff;">' + (o.listing.title || o.listing.event) + '</div>',
+            '<div style="font-size:13px;font-weight:700;color:#fff;font-family:Fraunces,serif;">€' + (o.totalPrice/100).toFixed(2) + '</div>',
+          '</div>',
+          '<div style="font-size:11px;color:rgba(255,255,255,.3);">Buyer: ' + o.buyer.phone + '</div>',
+        '</div>',
+      ].join('');
+    }).join('');
+
+    // If only one order or we have a pending order in localStorage, pre-select it
+    var activeOrderId = pendingOrderId || paidOrders[0].id;
+
+    listEl.querySelectorAll('.order-card').forEach(function(card){
+      card.addEventListener('click', function(){
+        listEl.querySelectorAll('.order-card').forEach(function(c){ c.style.borderColor='rgba(255,255,255,.09)'; });
+        card.style.borderColor = 'rgba(255,255,255,.25)';
+        activeOrderId = card.getAttribute('data-order-id');
+      });
+    });
+
+    // Pre-select
+    var preCard = listEl.querySelector('[data-order-id="' + activeOrderId + '"]');
+    if (preCard) preCard.style.borderColor = 'rgba(255,255,255,.25)';
+
+    confirmArea.style.display = 'block';
+
+    confirmBtn.addEventListener('click', async function(){
+      errEl.style.display = 'none';
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Confirming…';
+      try {
+        await ClubAuth.confirmDelivery(activeOrderId);
+        localStorage.removeItem('clubo_seller_pending_order');
+        document.getElementById('soldTitle').textContent = 'Done!';
+        document.getElementById('soldSub').textContent = 'Payment will be released to your balance automatically.';
+        confirmArea.style.display = 'none';
+        listEl.style.display = 'none';
+        loadingEl.style.display = 'none';
+      } catch(err) {
+        errEl.textContent = err.message || 'Could not confirm. Try again.';
+        errEl.style.display = 'block';
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'I Have Transferred';
+      }
+    });
+
+  } catch(err) {
+    loadingEl.textContent = 'Could not load orders.';
+  }
+});
+</script>
+</body>
+</html>

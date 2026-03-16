@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — Payment</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<link rel="stylesheet" href="common.css">
+<style>
+.content{display:flex;flex-direction:column;gap:20px;padding:24px 20px calc(40px + env(safe-area-inset-bottom));width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;scrollbar-width:none;}
+.content::-webkit-scrollbar{display:none;}
+.section-title{font-size:11px;font-weight:500;color:rgba(255,255,255,.3);letter-spacing:.08em;text-transform:uppercase;}
+.order-summary{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;}
+.order-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;}
+.order-row:last-child{margin-bottom:0;color:#fff;font-weight:500;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;margin-top:4px;}
+.balance-option{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .2s;}
+.balance-option.selected{border-color:rgba(255,255,255,.3);}
+.balance-left{display:flex;flex-direction:column;gap:3px;}
+.balance-label{font-size:14px;font-weight:500;color:#fff;}
+.balance-amount{font-size:12px;color:rgba(255,255,255,.4);}
+.balance-insufficient{font-size:12px;color:rgba(239,68,68,.7);}
+.toggle{width:44px;height:26px;background:rgba(255,255,255,.1);border-radius:13px;position:relative;transition:background .2s;}
+.toggle.on{background:rgba(255,255,255,.9);}
+.toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#08080F;border-radius:50%;transition:transform .2s;}
+.toggle.on .toggle-knob{transform:translateX(18px);}
+#stripe-container{display:flex;flex-direction:column;gap:12px;}
+#payment-element{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px;}
+.pay-btn{width:100%;padding:15px;background:#fff;color:#08080F;border:none;border-radius:14px;font-size:15px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;}
+.pay-btn:disabled{opacity:.4;cursor:not-allowed;}
+.error-msg{font-size:12px;color:rgba(239,68,68,.85);text-align:center;display:none;}
+.back-btn{background:none;border:none;color:rgba(255,255,255,.4);font-size:13px;font-family:inherit;cursor:pointer;padding:0;text-align:center;width:100%;}
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · Payment</div>
+<div class="phone">
+  <div class="top-bar"><div class="top-title">Checkout</div></div>
+
+  <div class="content">
+
+    <!-- Order summary -->
+    <div>
+      <div class="section-title" style="margin-bottom:10px;">Order summary</div>
+      <div class="order-summary">
+        <div class="order-row"><span id="listingTitle">Loading…</span><span id="listingPrice">—</span></div>
+        <div class="order-row"><span>Total</span><span id="listingTotal">—</span></div>
+      </div>
+    </div>
+
+    <!-- Pay with balance toggle -->
+    <div id="balance-section" style="display:none;">
+      <div class="section-title" style="margin-bottom:10px;">Clubo balance</div>
+      <div class="balance-option" id="balanceToggle">
+        <div class="balance-left">
+          <div class="balance-label">Pay with balance</div>
+          <div class="balance-amount" id="balanceAmount">—</div>
+        </div>
+        <div class="toggle" id="toggleEl"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+
+    <!-- Stripe card element (hidden when paying with balance) -->
+    <div id="stripe-container">
+      <div class="section-title" style="margin-bottom:10px;">Card payment</div>
+      <div id="payment-element"></div>
+    </div>
+
+    <div class="error-msg" id="errMsg"></div>
+
+    <button class="pay-btn" id="payBtn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="7" rx="1.5" stroke="#08080F" stroke-width="1.3"/><path d="M4.5 5V4a2.5 2.5 0 015 0v1" stroke="#08080F" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Pay securely
+    </button>
+
+    <button class="back-btn" id="backBtn">Cancel</button>
+
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script src="transition.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', async function() {
+  if (typeof ClubAuth !== 'undefined') ClubAuth.requireAuth();
+
+  var API            = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                         ? 'https://clubo-api-production.up.railway.app'
+                         : 'https://clubo-api-production.up.railway.app';
+  var STRIPE_PK      = 'pk_test_51T7YjnRwwM9yytUgoU0k5r7YRgTasnCd55uHBvU007YzWxktoOQkdFuwHaOXTalFNgNpgxxE0XiiXh5cvNLq7uaX00fXrAIJ7r';
+  var orderId        = localStorage.getItem('clubo_pending_order');
+  var listingId      = localStorage.getItem('clubo_viewing_listing');
+
+  var payBtn         = document.getElementById('payBtn');
+  var errMsg         = document.getElementById('errMsg');
+  var toggleEl       = document.getElementById('toggleEl');
+  var balanceSection = document.getElementById('balance-section');
+  var stripeContainer= document.getElementById('stripe-container');
+
+  var useBalance     = false;
+  var stripeInstance, elements, paymentElement;
+  var orderData      = null;
+  var userBalance    = 0;
+
+  function showError(msg) {
+    errMsg.textContent = msg;
+    errMsg.style.display = 'block';
+  }
+
+  function fmtPrice(cents) {
+    return '€' + (cents / 100).toFixed(2);
+  }
+
+  // ── 1. Load order + balance ───────────────────────────────────────────────
+
+  if (!orderId) {
+    showError('No order found. Go back and try again.');
+    payBtn.disabled = true;
+    return;
+  }
+
+  try {
+    var token = ClubAuth.getToken();
+
+    // Fetch order detail
+    var orderRes = await fetch(API + '/orders/' + orderId, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    orderData = (await orderRes.json()).order;
+    if (!orderData) throw new Error('Order not found');
+
+    document.getElementById('listingTitle').textContent = orderData.listing.title;
+    document.getElementById('listingPrice').textContent = fmtPrice(orderData.totalPrice);
+    document.getElementById('listingTotal').textContent = fmtPrice(orderData.totalPrice);
+
+    // Fetch balance
+    var balRes  = await fetch(API + '/me/balance', { headers: { 'Authorization': 'Bearer ' + token } });
+    var balData = await balRes.json();
+    userBalance = balData.balance || 0;
+
+    if (userBalance > 0) {
+      balanceSection.style.display = 'block';
+      var sufficient = userBalance >= orderData.totalPrice;
+      document.getElementById('balanceAmount').textContent =
+        fmtPrice(userBalance) + ' available' + (sufficient ? '' : ' — insufficient');
+      if (!sufficient) {
+        document.getElementById('balanceAmount').className = 'balance-insufficient';
+        toggleEl.style.opacity = '0.4';
+        toggleEl.style.pointerEvents = 'none';
+      }
+    }
+  } catch(err) {
+    showError(err.message);
+    payBtn.disabled = true;
+    return;
+  }
+
+  // ── 2. Init Stripe ────────────────────────────────────────────────────────
+
+  async function initStripe() {
+    if (stripeInstance) return; // already init
+
+    stripeInstance = Stripe(STRIPE_PK);
+
+    // Call /orders/:id/pay to create the PaymentIntent
+    var token   = ClubAuth.getToken();
+    var payRes  = await fetch(API + '/orders/' + orderId + '/pay', {
+      method:  'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body:    JSON.stringify({}),
+    });
+    var payData = await payRes.json();
+    if (!payRes.ok) throw new Error(payData.error || 'Could not initiate payment');
+
+    // If replayed (already has payment), clientSecret may not exist — handle gracefully
+    var clientSecret = payData.clientSecret || (payData.payment && payData.payment.providerRef);
+    if (!clientSecret) throw new Error('No client secret returned');
+
+    elements = stripeInstance.elements({ clientSecret, appearance: {
+      theme: 'night',
+      variables: {
+        colorBackground:      '#0f0f17',
+        colorText:            '#ffffff',
+        colorTextSecondary:   'rgba(255,255,255,0.4)',
+        colorPrimary:         '#ffffff',
+        borderRadius:         '10px',
+        fontFamily:           'DM Sans, sans-serif',
+      }
+    }});
+
+    paymentElement = elements.create('payment');
+    paymentElement.mount('#payment-element');
+  }
+
+  // Init Stripe immediately (unless balance covers it fully)
+  try {
+    await initStripe();
+  } catch(err) {
+    showError(err.message);
+    payBtn.disabled = true;
+  }
+
+  // ── 3. Balance toggle ─────────────────────────────────────────────────────
+
+  document.getElementById('balanceToggle').addEventListener('click', function() {
+    if (userBalance < orderData.totalPrice) return; // insufficient
+    useBalance = !useBalance;
+    toggleEl.classList.toggle('on', useBalance);
+    document.getElementById('balanceToggle').classList.toggle('selected', useBalance);
+    stripeContainer.style.display = useBalance ? 'none' : 'flex';
+    payBtn.textContent = useBalance ? 'Pay with balance' : 'Pay securely';
+  });
+
+  // ── 4. Pay button ─────────────────────────────────────────────────────────
+
+  payBtn.addEventListener('click', async function() {
+    errMsg.style.display = 'none';
+    payBtn.disabled = true;
+    payBtn.textContent = 'Processing…';
+
+    var token = ClubAuth.getToken();
+
+    try {
+      if (useBalance) {
+        // ── Balance payment path ──────────────────────────────────────────
+        var res  = await fetch(API + '/orders/' + orderId + '/pay', {
+          method:  'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ useBalance: true }),
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Payment failed');
+
+        localStorage.removeItem('clubo_viewing_listing');
+        (window.cluboNavigate || function(u){window.location.href=u})('clubo-v2-07b-processing-added.html');
+
+      } else {
+        // ── Stripe card payment path ──────────────────────────────────────
+        var result = await stripeInstance.confirmPayment({
+          elements,
+          confirmParams: {
+            return_url: window.location.protocol + '//' + window.location.host + '/clubo-v2-07b-processing-added.html',
+          },
+          redirect: 'if_required',
+        });
+
+
+
+        if (result.error) throw new Error(result.error.message);
+
+        // Payment confirmed — navigate immediately
+        localStorage.removeItem('clubo_viewing_listing');
+        (window.cluboNavigate || function(u){window.location.href=u})('clubo-v2-07a-processing-securing.html');
+      }
+    } catch(err) {
+      showError(err.message);
+      payBtn.disabled = false;
+      payBtn.textContent = useBalance ? 'Pay with balance' : 'Pay securely';
+    }
+  });
+
+  // ── 5. Cancel ─────────────────────────────────────────────────────────────
+
+  document.getElementById('backBtn').addEventListener('click', async function() {
+    try {
+      var token = ClubAuth.getToken();
+      await fetch(API + '/orders/' + orderId + '/cancel', {
+        method:  'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+    } catch(e) {}
+    history.back();
+  });
+
+});
+</script>
+</body>
+</html>

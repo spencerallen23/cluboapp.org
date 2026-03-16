@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — 13 Dispute</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+
+.back-row{display:flex;align-items:center;gap:6px;margin-bottom:14px;cursor:pointer;opacity:.4;}
+.back-row span{font-size:13px;font-weight:300;color:#fff;}
+
+.title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:6px;}
+.sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.32);line-height:1.6;margin-bottom:14px;}
+
+.label{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);margin:12px 2px 8px;}
+.select, .textarea{
+  width:100%;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;
+  color:#fff;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  padding:12px 12px;
+  outline:none;
+}
+.select{appearance:none;}
+.textarea{min-height:118px;resize:none;line-height:1.5;}
+.hint{font-size:10px;font-weight:300;color:rgba(255,255,255,.25);margin-top:8px;line-height:1.4;}
+
+.upload{
+  margin-top:12px;
+  background:rgba(255,255,255,.04);
+  border:1px dashed rgba(255,255,255,.14);
+  border-radius:14px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.upload-left{display:flex;flex-direction:column;gap:2px;}
+.upload-main{font-size:12px;font-weight:500;color:rgba(255,255,255,.75);}
+.upload-sub{font-size:10px;font-weight:300;color:rgba(255,255,255,.28);}
+
+.cta-area{margin-top:auto;padding-bottom:14px;display:flex;flex-direction:column;gap:10px;}
+.cta-btn{
+  width:100%;
+  height:52px;
+  border-radius:14px;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  font-weight:500;
+  background:#fff;
+  color:#08080F;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none;
+}
+.secondary{
+  height:40px;
+  border-radius:12px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  color:rgba(255,255,255,.55);
+  font-size:11px;
+}
+
+/* links + nav */
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · 13 — Dispute</div>
+
+<div class="phone">
+    <div class="top-bar">
+      <div class="top-title">Clubo</div>
+    </div>
+  <div class="screen">
+    <a class="back-row" href="clubo-v2-12-profile.html"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Back</span></a>
+
+    <div class="title">Report an issue</div>
+    <div class="sub">If something feels off, report it here. We’ll pause the trade and review.</div>
+
+    <div class="label">Order</div>
+    <select class="select" id="orderSelect">
+      <option value="">Loading your orders…</option>
+    </select>
+
+    <div class="label">Issue type</div>
+    <select class="select" id="issueSelect">
+      <option>Ticket invalid at door</option>
+      <option>Seller did not transfer</option>
+      <option>QR not unlocking</option>
+      <option>Suspected fraud</option>
+      <option>Other</option>
+    </select>
+
+    <div class="label">Details</div>
+    <textarea class="textarea" placeholder="What happened? Include any relevant info (time, venue, screenshots)."></textarea>
+    <div class="hint">Tip: add proof for faster resolution.</div>
+
+    <!-- Evidence upload -->
+    <input type="file" id="evidenceFile" accept="image/*" style="display:none;">
+    <div class="upload" id="uploadCard" style="cursor:pointer;">
+      <div class="upload-left">
+        <div class="upload-main" id="uploadMain">Add screenshot evidence</div>
+        <div class="upload-sub" id="uploadSub">Optional · Tap to attach</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3v12M3 9h12" stroke="rgba(255,255,255,.5)" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </div>
+
+    <div id="dispute-error" style="display:none;color:rgba(239,68,68,.85);font-size:12px;text-align:center;margin-top:8px;"></div>
+
+    <div class="cta-area">
+      <button class="cta-btn" id="submitBtn" type="button">Submit Report</button>
+      <a class="cta-btn secondary" href="clubo-v2-04-home.html">Cancel</a>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-09-sell.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-15-balance.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.25)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-12-profile.html">
+      <div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div>
+    </a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+<script>
+var evidenceFile = null;
+
+// Load orders into selector
+window.addEventListener('DOMContentLoaded', async function(){
+  var sel = document.getElementById('orderSelect');
+  // Pre-fill if navigated from tickets screen
+  var stored = localStorage.getItem('clubo_dispute_order');
+  try {
+    var orders = await ClubAuth.getMyOrders();
+    var eligible = (orders || []).filter(function(o){ return ['PAID','DELIVERED','COMPLETED','DISPUTE_OPEN'].includes(o.status); });
+    if (eligible.length === 0) {
+      sel.innerHTML = '<option value="">No eligible orders found</option>';
+    } else {
+      sel.innerHTML = eligible.map(function(o){
+        var label = (o.listing && o.listing.title) ? o.listing.title : 'Order';
+        var selected = stored === o.id ? ' selected' : '';
+        return '<option value="' + o.id + '"' + selected + '>' + label + ' · ' + o.id.slice(-6).toUpperCase() + '</option>';
+      }).join('');
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">Could not load orders</option>';
+  }
+});
+
+document.getElementById('uploadCard').addEventListener('click', function(){
+  document.getElementById('evidenceFile').click();
+});
+
+document.getElementById('evidenceFile').addEventListener('change', function(e){
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
+  evidenceFile = file;
+  document.getElementById('uploadMain').textContent = file.name.slice(0, 32);
+  document.getElementById('uploadSub').textContent = 'Tap to change';
+});
+
+document.getElementById('submitBtn').addEventListener('click', async function(){
+  var btn   = document.getElementById('submitBtn');
+  var errEl = document.getElementById('dispute-error');
+  errEl.style.display = 'none';
+
+  var orderId = document.getElementById('orderSelect') ? document.getElementById('orderSelect').value : localStorage.getItem('clubo_dispute_order');
+  var reason  = document.getElementById('issueSelect') ? document.getElementById('issueSelect').value : '';
+  var detail  = document.querySelector('.textarea') ? document.querySelector('.textarea').value.trim() : '';
+  var full    = reason + (detail ? ': ' + detail : '');
+
+  if (!full.trim()) { errEl.textContent = 'Please describe the issue.'; errEl.style.display='block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  try {
+    var evidenceUrl = null;
+
+    if (evidenceFile) {
+      btn.textContent = 'Uploading evidence…';
+      var uploadData = await ClubAuth.getEvidenceUploadUrl(evidenceFile.type);
+      await ClubAuth.uploadFileToS3(uploadData.uploadUrl, evidenceFile);
+      evidenceUrl = uploadData.publicUrl;
+    }
+
+    if (!orderId) throw new Error('Please select an order.');
+    await ClubAuth.openDispute(orderId, full, evidenceUrl);
+
+    localStorage.removeItem('clubo_dispute_order');
+    btn.textContent = 'Submitted ✓';
+    setTimeout(function(){ (window.cluboNavigate || function(u){window.location.href=u;})('clubo-v2-12-profile.html'); }, 900);
+  } catch(err) {
+    errEl.textContent = err.message || 'Could not submit. Try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Submit Report';
+  }
+});
+</script>
+</body>
+</html>

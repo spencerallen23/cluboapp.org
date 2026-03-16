@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — 06 Ticket Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 6px rgba(74,222,128,.7)}50%{box-shadow:0 0 12px rgba(74,222,128,.3)}}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.screen::-webkit-scrollbar{display:none;}
+.back-row{display:flex;align-items:center;gap:6px;margin-bottom:16px;cursor:pointer;opacity:.4;flex-shrink:0;}
+.back-row span{font-size:13px;font-weight:300;color:#fff;}
+/* Event header */
+.ev-header{margin-bottom:14px;flex-shrink:0;}
+.ev-venue{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:2px;}
+.ev-name{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:-.02em;}
+/* Countdown strip */
+.countdown-strip{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:9px 14px;margin-bottom:16px;flex-shrink:0;}
+.cd-lbl{font-size:10px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.22);}
+.cd-val{font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;}
+.cd-val em{font-style:normal;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:300;color:rgba(255,255,255,.3);}
+/* Ticket preview */
+.ticket-preview{background:#0F0F1A;border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:16px;margin-bottom:14px;flex-shrink:0;position:relative;overflow:hidden;}
+/* Simulated ticket background */
+.ticket-bg{width:100%;height:130px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:10px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.ticket-bg-text{position:absolute;top:10px;left:12px;font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:-.01em;}
+.ticket-bg-sub{position:absolute;top:30px;left:12px;font-size:10px;font-weight:300;color:rgba(255,255,255,.35);}
+.ticket-bg-venue{position:absolute;bottom:10px;left:12px;font-size:9px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);}
+/* Blurred QR */
+.qr-wrap{width:70px;height:70px;position:absolute;right:12px;top:50%;transform:translateY(-50%);}
+.qr-inner{width:70px;height:70px;background:white;border-radius:6px;display:grid;grid-template-columns:repeat(7,1fr);gap:1.5px;padding:6px;filter:blur(4px);}
+.qr-cell{background:#111;border-radius:1px;}
+/* Randomize QR cells */
+.qr-inner .w{background:white;}
+/* Watermark */
+.watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,8,15,.35);}
+.wm-text{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);background:rgba(8,8,15,.7);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:4px 10px;backdrop-filter:blur(4px);}
+/* Seller row */
+.seller-row{display:flex;align-items:center;justify-content:space-between;}
+.trust-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:6px;padding:3px 8px 3px 5px;}
+.trust-dot{width:6px;height:6px;border-radius:50%;background:#4ADE80;animation:pulse 2s ease-in-out infinite;}
+.trust-text{font-size:10px;font-weight:500;color:#4ADE80;letter-spacing:.06em;text-transform:uppercase;}
+.seller-meta{font-size:11px;font-weight:300;color:rgba(255,255,255,.3);}
+/* QR note */
+.qr-note{display:flex;align-items:flex-start;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;margin-bottom:14px;flex-shrink:0;}
+.qr-note-text{font-size:11px;font-weight:300;color:rgba(255,255,255,.35);line-height:1.55;}
+/* Price breakdown */
+.breakdown{display:flex;flex-direction:column;gap:0;margin-bottom:14px;border:1px solid rgba(255,255,255,.07);border-radius:13px;overflow:hidden;flex-shrink:0;}
+.br-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.05);}
+.br-row:last-child{border-bottom:none;background:rgba(255,255,255,.04);}
+.br-lbl{font-size:12px;font-weight:300;color:rgba(255,255,255,.38);}
+.br-val{font-size:12px;font-weight:400;color:rgba(255,255,255,.65);}
+.br-row.total .br-lbl{font-size:13px;font-weight:500;color:rgba(255,255,255,.65);}
+.br-row.total .br-val{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#fff;letter-spacing:-.02em;}
+/* CTA */
+.cta-area{margin-top:auto;flex-shrink:0;padding-bottom:max(16px,env(safe-area-inset-bottom));}
+.cta-btn{width:100%;height:52px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+
+/* Bottom nav */
+
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · 06 — Ticket Detail (Pre-Purchase)</div>
+<div class="phone">
+    <div class="top-bar">
+      <div class="top-title">Clubo</div>
+    </div>
+  <div class="screen">
+    <a class="back-row" href="clubo-v2-05-listings-mondays.html" aria-label="Back to Listings"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Listings</span></a>
+
+    <div class="ev-header">
+      <div class="ev-venue">Fabrik Madrid</div>
+      <div class="ev-name">Mondays</div>
+    </div>
+
+    <div class="countdown-strip">
+      <div class="cd-lbl">Starts in</div>
+      <div class="cd-val" id="cdVal">--<em>h</em> --<em>m</em> --<em>s</em></div>
+    </div>
+
+    <!-- Ticket preview with blurred QR -->
+    <div class="ticket-preview">
+      <div class="ticket-bg">
+        <div class="ticket-bg-text">Mondays</div>
+        <div class="ticket-bg-sub">General Admission</div>
+        <div class="ticket-bg-venue">Fabrik Madrid · 24.02.25</div>
+        <!-- Blurred QR -->
+        <div class="qr-wrap">
+          <div class="qr-inner">
+            <!-- QR pattern approximation -->
+            <div></div><div></div><div></div><div class="w"></div><div></div><div></div><div></div>
+            <div></div><div class="w"></div><div></div><div></div><div></div><div class="w"></div><div></div>
+            <div></div><div></div><div class="w"></div><div></div><div class="w"></div><div></div><div></div>
+            <div class="w"></div><div></div><div></div><div class="w"></div><div></div><div></div><div class="w"></div>
+            <div></div><div></div><div class="w"></div><div></div><div class="w"></div><div></div><div></div>
+            <div></div><div class="w"></div><div></div><div></div><div></div><div class="w"></div><div></div>
+            <div></div><div></div><div></div><div class="w"></div><div></div><div></div><div></div>
+          </div>
+        </div>
+        <!-- Watermark overlay -->
+        <div class="watermark">
+          <div class="wm-text">🔒 Protected by Clubo</div>
+        </div>
+      </div>
+      <div class="seller-row">
+        <div class="trust-badge"><div class="trust-dot"></div><div class="trust-text">Clean seller</div></div>
+        <div class="seller-meta">Carlos M. · 47 trades</div>
+      </div>
+    </div>
+
+    <!-- QR unlock note -->
+    <div class="qr-note">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M7 2L2.5 5v4c0 2.5 2.5 4 4.5 5 2-1 4.5-2.5 4.5-5V5L7 2z" stroke="rgba(255,255,255,.3)" stroke-width="1.1" stroke-linejoin="round"/></svg>
+      <div class="qr-note-text">QR unlocks at event start to prevent duplicate resale. You'll be notified at 00:00.</div>
+    </div>
+
+    <!-- Price breakdown -->
+    <div class="breakdown">
+      <div class="br-row"><span class="br-lbl">Ticket price</span><span class="br-val">€12.00</span></div>
+      <div class="br-row"><span class="br-lbl">Platform fee</span><span class="br-val">€1.20</span></div>
+      <div class="br-row total"><span class="br-lbl">Total</span><span class="br-val">€13.20</span></div>
+    </div>
+
+    <div class="cta-area">
+      <div id="buy-error" style="display:none;color:rgba(239,68,68,.85);font-size:12px;font-weight:400;text-align:center;margin-bottom:8px;"></div>
+      <button id="buyBtn" class="cta-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="7" rx="1.5" stroke="#08080F" stroke-width="1.3"/><path d="M4.5 5V4a2.5 2.5 0 015 0v1" stroke="#08080F" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Pay Securely
+      </button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html">
+      <div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-09-sell.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-15-balance.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.25)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-12-profile.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div>
+    </a>
+  </div>
+</div>
+
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+<script>
+function getTarget(){var now=new Date(),t=new Date(now);t.setHours(23,30,0,0);if(now>=t)t.setDate(t.getDate()+1);return t;}
+function fmt(ms){if(ms<=0)return'Open now';var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60,p=function(n){return String(n).padStart(2,'0');};return p(h)+'<em>h</em> '+p(m)+'<em>m</em> '+p(sc)+'<em>s</em>';}
+function tick(){var el=document.getElementById('cdVal');if(el)el.innerHTML=fmt(getTarget()-new Date());}
+tick();setInterval(tick,1000);
+
+window.addEventListener('DOMContentLoaded', async function(){
+  var listingId = localStorage.getItem('clubo_viewing_listing');
+  var errEl = document.getElementById('buy-error');
+
+  if (!listingId) {
+    errEl.textContent = 'No listing selected. Go back and try again.';
+    errEl.style.display = 'block';
+    document.getElementById('buyBtn').disabled = true;
+    return;
+  }
+
+  // Load listing from API
+  try {
+    var API = 'http://' + window.location.hostname + ':3000';
+    var token = ClubAuth.getToken();
+    var res = await fetch(API + '/listings', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data = await res.json();
+    var listing = (data.listings || []).find(function(l){ return l.id === listingId; });
+
+    if (!listing) {
+      errEl.textContent = 'Listing no longer available.';
+      errEl.style.display = 'block';
+      document.getElementById('buyBtn').disabled = true;
+      return;
+    }
+
+    if (listing.status === 'sold') {
+      errEl.textContent = 'This ticket has already been sold.';
+      errEl.style.display = 'block';
+      document.getElementById('buyBtn').disabled = true;
+    }
+
+    // Populate event header
+    var venueMap = { mondays: 'Fabrik Madrid', istar: 'Istar Madrid' };
+    var nameMap  = { mondays: 'Mondays', istar: 'Istar' };
+    var venue = venueMap[listing.event] || (listing.eventLabel || listing.event);
+    var name  = nameMap[listing.event]  || (listing.eventLabel || listing.title);
+
+    document.querySelector('.ev-venue').textContent = venue;
+    document.querySelector('.ev-name').textContent  = name;
+    document.querySelector('.ticket-bg-text').textContent  = name;
+    document.querySelector('.ticket-bg-sub').textContent   = 'General Admission';
+
+    var now = new Date();
+    var dateStr = String(now.getDate()).padStart(2,'0') + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getFullYear()).slice(-2);
+    document.querySelector('.ticket-bg-venue').textContent = venue + ' · ' + dateStr;
+
+    // Back link — go to correct listings page
+    var backLink = document.querySelector('.back-row');
+    if (backLink) backLink.href = listing.event === 'istar' ? 'clubo-v2-05-listings-istar.html' : 'clubo-v2-05-listings-mondays.html';
+
+    // Seller info
+    var av = ClubAuth.avatarFor(listing.seller.id);
+    document.querySelector('.seller-meta').textContent = av.initials + ' · Verified seller';
+
+    // Price breakdown
+    var price = listing.price;
+    var fee   = Math.round(price * 0.10);
+    var total = price + fee;
+    var rows = document.querySelectorAll('.br-row .br-val');
+    if (rows[0]) rows[0].textContent = ClubAuth.formatPrice(price);
+    if (rows[1]) rows[1].textContent = ClubAuth.formatPrice(fee);
+    if (rows[2]) rows[2].textContent = ClubAuth.formatPrice(total);
+
+  } catch(err) {
+    console.warn('Could not load listing:', err);
+    // Leave hardcoded fallback visible, don't block
+  }
+});
+
+document.getElementById('buyBtn').addEventListener('click', async function(){
+  var btn   = document.getElementById('buyBtn');
+  var errEl = document.getElementById('buy-error');
+  errEl.style.display = 'none';
+
+  var listingId = localStorage.getItem('clubo_viewing_listing');
+  if (!listingId) {
+    errEl.textContent = 'Could not identify ticket. Go back and try again.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
+
+  try {
+    var order = await ClubAuth.createOrder(listingId);
+    localStorage.setItem('clubo_pending_order', order.id);
+    window.cluboNavigate('payment_screen.html');
+  } catch(err) {
+    errEl.textContent = err.message || 'Could not complete purchase. Try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="7" rx="1.5" stroke="#08080F" stroke-width="1.3"/><path d="M4.5 5V4a2.5 2.5 0 015 0v1" stroke="#08080F" stroke-width="1.3" stroke-linecap="round"/></svg> Pay Securely';
+  }
+});
+</script>
+</body>
+</html>

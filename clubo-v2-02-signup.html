@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Clubo — 02 Sign Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+.screen{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  display:flex;flex-direction:column;
+  padding-top:calc(58px + env(safe-area-inset-top));
+  padding-left:22px;padding-right:22px;
+  padding-bottom:calc(16px + env(safe-area-inset-bottom));
+  overflow:hidden;
+}
+.title{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:2px;margin-top:10px;}
+.sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.3);margin-bottom:20px;}
+.step{display:none;flex-direction:column;flex:1;}
+.step.active{display:flex;}
+
+/* Google button */
+.google-wrap{margin-top:auto;display:flex;flex-direction:column;gap:12px;padding-bottom:8px;}
+.google-btn{
+  width:100%;height:50px;
+  background:#fff;border:none;border-radius:13px;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+}
+
+/* Verified badge */
+.verified-card{
+  background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);
+  border-radius:14px;padding:14px;
+  display:flex;align-items:center;gap:12px;margin-bottom:18px;
+}
+.verified-icon{width:32px;height:32px;background:rgba(74,222,128,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.verified-email{font-size:13px;font-weight:500;color:rgba(255,255,255,.85);}
+.verified-label{font-size:10px;color:rgba(74,222,128,.7);margin-top:2px;}
+
+/* Fields */
+.field-group{display:flex;flex-direction:column;margin-bottom:10px;}
+.field-label{font-size:9px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:4px;}
+.field-input{width:100%;height:44px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:0;display:flex;align-items:center;overflow:hidden;}
+.text-input{width:100%;background:transparent;border:none;outline:none;color:#fff;font-size:16px;font-family:'DM Sans',sans-serif;padding:0 12px;height:44px;}
+.text-input::placeholder{color:rgba(255,255,255,.2);font-weight:300;font-size:14px;}
+.row{display:flex;gap:9px;}
+.row .field-group{flex:1;}
+
+/* CTA */
+.cta-area{margin-top:auto;padding-top:10px;}
+.cta-btn{width:100%;height:50px;background:#fff;border:none;border-radius:13px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;cursor:pointer;}
+.cta-btn:disabled{opacity:.5;}
+.fine{font-size:10px;font-weight:300;color:rgba(255,255,255,.18);text-align:center;margin-top:8px;}
+.error-msg{font-size:12px;color:rgba(239,68,68,.85);text-align:center;margin-bottom:8px;min-height:16px;}
+
+/* Back */
+.back-link{display:flex;align-items:center;gap:5px;cursor:pointer;opacity:.4;margin-bottom:14px;width:fit-content;}
+.back-link span{font-size:12px;color:#fff;font-weight:300;}
+
+/* Edu requirement pill */
+.edu-card{
+  background:rgba(255,200,50,.06);border:1px solid rgba(255,200,50,.15);
+  border-radius:14px;padding:14px;
+  display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;
+}
+.edu-icon{width:30px;height:30px;background:rgba(255,200,50,.12);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top-bar"><div class="top-title">Clubo</div></div>
+  <div class="screen">
+
+    <!-- STEP 1: Google sign-in -->
+    <div class="step active" id="step1">
+      <div class="title">Join Clubo</div>
+      <div class="sub">Verify your university email to get started.</div>
+
+      <div class="edu-card">
+        <div class="edu-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1.5L1.5 4.5v1L7 8l5.5-2.5v-1L7 1.5z" stroke="rgba(255,200,50,.8)" stroke-width="1.1" stroke-linejoin="round"/>
+            <path d="M3.5 6v3.5L7 11l3.5-1.5V6" stroke="rgba(255,200,50,.8)" stroke-width="1.1" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,.75);">American university students only</div>
+          <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.3);margin-top:3px;line-height:1.5;">Sign in with your .edu Google account. No personal emails accepted.</div>
+        </div>
+      </div>
+
+      <div class="google-wrap">
+        <div class="error-msg" id="err1"></div>
+        <button class="google-btn" id="googleSignInBtn" type="button">
+          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <div class="fine">Only .edu Google accounts are accepted.</div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Phone + name -->
+    <div class="step" id="step2">
+      <div class="back-link" id="backBtn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Back</span>
+      </div>
+
+      <div class="title">Almost in</div>
+      <div class="sub">Add your phone to receive your verification code.</div>
+
+      <div class="verified-card">
+        <div class="verified-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5l3 3 6-6" stroke="rgba(74,222,128,.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="verified-email" id="verifiedEmailDisplay">—</div>
+          <div class="verified-label">University email verified ✓</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field-group">
+          <div class="field-label">First Name</div>
+          <div class="field-input">
+            <input id="inp-first" class="text-input" type="text" placeholder="Jamie"
+              autocomplete="given-name" autocorrect="off" autocapitalize="words" enterkeyhint="next">
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Last Name</div>
+          <div class="field-input">
+            <input id="inp-last" class="text-input" type="text" placeholder="Rivera"
+              autocomplete="family-name" autocorrect="off" autocapitalize="words" enterkeyhint="next">
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Phone Number</div>
+        <div class="field-input" id="phone-wrap" style="border-radius:12px;">
+          <input id="inp-phone" class="text-input" type="tel"
+            placeholder="+1 555 000 0000" autocomplete="tel" enterkeyhint="done"
+            style="padding:0 12px;height:44px;">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Referral Code <span style="opacity:.5;font-size:8px;">(optional)</span></div>
+        <div class="field-input">
+          <input id="inp-ref" class="text-input" type="text" placeholder="e.g. ALEX-2024"
+            autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done">
+        </div>
+      </div>
+
+      <div class="cta-area">
+        <div class="error-msg" id="err2"></div>
+        <button id="continueBtn" class="cta-btn" type="button">Send Verification Code</button>
+        <div class="fine">By continuing you agree to Clubo's community rules.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/intlTelInput.min.js"></script>
+<script src="auth.js"></script>
+<script src="transition.js" defer></script>
+
+<style>
+.iti{width:100%;}
+.iti__flag-container{padding-left:10px;}
+.iti__selected-flag{background:transparent!important;padding:0 8px 0 10px;}
+.iti__selected-flag:hover,.iti__selected-flag:focus{background:rgba(255,255,255,.06)!important;}
+.iti__arrow{border-top-color:rgba(255,255,255,.3);}
+.iti__arrow--up{border-bottom-color:rgba(255,255,255,.3);}
+.iti__country-list{background:#1a1a2a;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.6);max-height:220px;}
+.iti__country:hover,.iti__country.iti__highlight{background:rgba(255,255,255,.06);}
+.iti__country-name,.iti__dial-code{color:rgba(255,255,255,.7);}
+.iti__divider{border-bottom-color:rgba(255,255,255,.08);}
+.iti__search-input{background:rgba(255,255,255,.05);border:none;border-bottom:1px solid rgba(255,255,255,.08);color:#fff;font-family:'DM Sans',sans-serif;padding:8px 12px;width:100%;outline:none;font-size:13px;}
+#inp-phone{padding-left:52px!important;}
+</style>
+
+<script>
+var itiInstance;
+var verifiedEmail = '';
+var verifiedGoogleToken = '';
+
+// Decode Google's JWT without a library
+function decodeJWT(token) {
+  try {
+    var b64 = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    return JSON.parse(atob(b64));
+  } catch(e) { return null; }
+}
+
+// Called by Google Identity after user picks account
+function handleGoogleCredential(response) {
+  var payload = decodeJWT(response.credential);
+  if (!payload) { showErr(1, 'Sign-in failed. Try again.'); return; }
+
+  var email = (payload.email || '').toLowerCase();
+  if (!payload.email_verified) { showErr(1, 'Google email not verified. Please verify it first.'); return; }
+  // DEV BYPASS: allow any Google account for testing
+  // DEV: .edu check disabled
+
+  // Store verified creds
+  verifiedEmail = email;
+  verifiedGoogleToken = response.credential;
+  document.getElementById('verifiedEmailDisplay').textContent = email;
+  localStorage.setItem('clubo_email', email);
+  localStorage.setItem('clubo_google_token', response.credential);
+
+  // Pre-fill name from Google profile
+  if (payload.given_name)  document.getElementById('inp-first').value = payload.given_name;
+  if (payload.family_name) document.getElementById('inp-last').value  = payload.family_name;
+  document.getElementById('verifiedEmailDisplay').textContent = email;
+
+  // Go to step 2
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+  setTimeout(function(){ document.getElementById('inp-phone').focus(); }, 150);
+}
+
+function showErr(step, msg) {
+  document.getElementById('err' + step).textContent = msg;
+}
+function clearErr(step) {
+  document.getElementById('err' + step).textContent = '';
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+
+  // Init Google Identity — waits for GSI script to load
+  (function initGoogle() {
+    if (typeof google === 'undefined' || !google.accounts) {
+      return setTimeout(initGoogle, 150);
+    }
+    google.accounts.id.initialize({
+      // ⚠️  Replace this with your Google Client ID from console.cloud.google.com
+      client_id: '1011768971856-lnj2e2o3pqcgi79hnnjnj33srmhd36de.apps.googleusercontent.com',
+      callback: handleGoogleCredential,
+      auto_select: false,
+    });
+
+    document.getElementById('googleSignInBtn').addEventListener('click', function() {
+      clearErr(1);
+      google.accounts.id.prompt(function(notification) {
+        // One Tap suppressed — render a proper button instead
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          google.accounts.id.renderButton(
+            document.getElementById('googleSignInBtn'),
+            { theme: 'filled_black', size: 'large', text: 'continue_with', width: 320 }
+          );
+        }
+      });
+    });
+  })();
+
+  // Phone input
+  var phoneEl = document.getElementById('inp-phone');
+  var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (isTouch) {
+    itiInstance = window.intlTelInput(phoneEl, {
+      initialCountry: 'us',
+      preferredCountries: ['us','es','gb','fr','de'],
+      separateDialCode: true,
+      utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js',
+    });
+  } else {
+    phoneEl.placeholder = '+1 555 000 0000';
+  }
+
+  // Back button
+  document.getElementById('backBtn').addEventListener('click', function() {
+    verifiedEmail = '';
+    verifiedGoogleToken = '';
+    localStorage.removeItem('clubo_email');
+    localStorage.removeItem('clubo_google_token');
+    clearErr(2);
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.add('active');
+  });
+
+  // Continue / send OTP
+  document.getElementById('continueBtn').addEventListener('click', async function() {
+    clearErr(2);
+    if (!verifiedEmail) { showErr(2, 'Please sign in with Google first.'); return; }
+
+    var rawPhone = itiInstance ? itiInstance.getNumber() : document.getElementById('inp-phone').value.trim();
+    // Auto-add + prefix if missing (handles plain US numbers like 15168409023)
+    var phone = rawPhone;
+    if (phone && !phone.startsWith('+')) phone = '+' + phone;
+    if (!phone || phone.replace(/\D/g,'').length < 7) {
+      showErr(2, 'Please enter a valid phone number.'); return;
+    }
+
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    try {
+      await ClubAuth.startAuth(phone, verifiedEmail, verifiedGoogleToken);
+      ClubAuth.setPhone(phone);
+      (window.cluboNavigate || function(u){ window.location.href = u; })('clubo-v2-03-otp.html');
+    } catch(err) {
+      showErr(2, err.message || 'Could not send code. Try again.');
+      btn.disabled = false;
+      btn.textContent = 'Send Verification Code';
+    }
+  });
+
+  // Enter key advances
+  ['inp-first','inp-last','inp-phone','inp-ref'].forEach(function(id, i, arr) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('keydown', function(e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (i < arr.length - 1) document.getElementById(arr[i+1]).focus();
+      else document.getElementById('continueBtn').click();
+    });
+  });
+
+  // Kill scroll on keyboard open
+  window.addEventListener('scroll', function(){ window.scrollTo(0,0); }, {passive:false});
+});
+</script>
+</body>
+</html>

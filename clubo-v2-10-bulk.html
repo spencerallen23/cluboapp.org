@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — 10 Bulk Sell</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.screen::-webkit-scrollbar{display:none;}
+.back-row{display:flex;align-items:center;gap:6px;margin-bottom:14px;cursor:pointer;opacity:.4;}
+.back-row span{font-size:13px;font-weight:300;color:#fff;}
+.title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:6px;}
+.sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.32);line-height:1.6;margin-bottom:18px;}
+.label{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:6px;}
+.input-wrap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:0;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:relative;}
+.price-wrap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.currency{font-size:18px;font-weight:600;color:rgba(255,255,255,.35);}
+.price-input{border:none;background:transparent;outline:none;color:#fff;font-family:'Fraunces',serif;font-size:34px;font-weight:700;width:100%;}
+.hint{font-size:11px;font-weight:300;color:rgba(255,255,255,.28);margin-bottom:18px;}
+.ticket-slots{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.ticket-slot{background:#0F0F1A;border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s;}
+.ticket-slot.has-file{border-color:rgba(74,222,128,.3);}
+.slot-num{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:rgba(255,255,255,.35);flex-shrink:0;}
+.slot-num.filled{background:rgba(74,222,128,.12);border-color:rgba(74,222,128,.3);color:#4ADE80;}
+.slot-info{flex:1;}
+.slot-title{font-size:13px;font-weight:500;color:rgba(255,255,255,.5);}
+.slot-title.filled{color:rgba(255,255,255,.8);}
+.slot-sub{font-size:10px;font-weight:300;color:rgba(255,255,255,.28);margin-top:2px;}
+.slot-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,.09);display:none;}
+.slot-thumb.show{display:block;}
+.checkbox{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px;cursor:pointer;}
+.box{width:18px;height:18px;border-radius:6px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.cb-text{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);line-height:1.55;}
+.cta-area{margin-top:auto;padding-bottom:14px;}
+.cta-btn{width:100%;height:52px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.cta-btn:disabled{opacity:.4;cursor:not-allowed;}
+.progress-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-bottom:8px;display:none;}
+.progress-fill{height:100%;background:#4ADE80;border-radius:2px;transition:width .3s;}
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · 10 — Bulk Sell</div>
+<div class="phone">
+  <div class="top-bar"><div class="top-title">Clubo</div></div>
+  <div class="screen">
+    <a class="back-row" href="clubo-v2-09-sell.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Back</span>
+    </a>
+    <div class="title">Bulk Sell</div>
+    <div class="sub">List up to 3 tickets at once. Each gets its own listing.</div>
+
+    <div class="label">Event</div>
+    <div class="input-wrap">
+      <select id="eventSelect" style="width:100%;background:transparent;border:none;outline:none;color:rgba(255,255,255,.7);font-family:'DM Sans',sans-serif;font-size:13px;padding:14px;appearance:none;-webkit-appearance:none;">
+        <option value="mondays">Mondays · Fabrik Madrid</option>
+        <option value="istar">Istar · Istar Madrid</option>
+        <option value="other">Other Event</option>
+      </select>
+      <svg style="position:absolute;right:14px;pointer-events:none;opacity:.35;" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 6l3 3 3-3" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="label">Price per Ticket</div>
+    <div class="price-wrap">
+      <div class="currency">€</div>
+      <input class="price-input" id="priceInput" value="14" inputmode="numeric">
+    </div>
+    <div class="hint">Same price applied to all tickets</div>
+
+    <div class="label">Ticket Screenshots</div>
+    <div class="ticket-slots" id="ticketSlots"></div>
+
+    <input type="file" id="file0" accept="image/*" style="display:none;">
+    <input type="file" id="file1" accept="image/*" style="display:none;">
+    <input type="file" id="file2" accept="image/*" style="display:none;">
+
+    <div class="checkbox" id="confirmCheck">
+      <div class="box" id="checkBox">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" id="checkMark" style="display:none;"><path d="M2.2 6.2l2.2 2.2L9.8 3" stroke="#4ADE80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="cb-text">I confirm these tickets have not been sold elsewhere.</div>
+    </div>
+
+    <div class="cta-area">
+      <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div id="bulk-error" style="display:none;color:rgba(239,68,68,.85);font-size:12px;text-align:center;margin-bottom:8px;"></div>
+      <button class="cta-btn" id="listBtn" type="button" disabled>Upload screenshots to list</button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div></a>
+    <a class="nav-link" href="clubo-v2-09-sell.html"><div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div></a>
+    <a class="nav-link" href="clubo-v2-15-balance.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.25)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div></a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div></a>
+    <a class="nav-link" href="clubo-v2-12-profile.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div></a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+<script>
+var MAX_SLOTS = 3;
+var files = [null, null, null];
+var confirmed = false;
+
+function renderSlots() {
+  var container = document.getElementById('ticketSlots');
+  container.innerHTML = '';
+  for (var i = 0; i < MAX_SLOTS; i++) {
+    var hasFile = !!files[i];
+    var slot = document.createElement('div');
+    slot.className = 'ticket-slot' + (hasFile ? ' has-file' : '');
+    slot.setAttribute('data-idx', i);
+    slot.innerHTML = [
+      '<div class="slot-num ' + (hasFile ? 'filled' : '') + '">' + (i+1) + '</div>',
+      '<div class="slot-info">',
+        '<div class="slot-title ' + (hasFile ? 'filled' : '') + '">' + (hasFile ? files[i].name.slice(0,30) : 'Tap to upload ticket ' + (i+1)) + '</div>',
+        '<div class="slot-sub">' + (hasFile ? 'Tap to change' : 'JPG or PNG') + '</div>',
+      '</div>',
+      '<img class="slot-thumb' + (hasFile ? ' show' : '') + '" id="thumb' + i + '" src="">',
+    ].join('');
+    slot.addEventListener('click', (function(idx){ return function(){ document.getElementById('file'+idx).click(); }; })(i));
+    container.appendChild(slot);
+    if (hasFile) {
+      (function(idx, file){
+        var reader = new FileReader();
+        reader.onload = function(ev){
+          var img = document.getElementById('thumb' + idx);
+          if (img) { img.src = ev.target.result; img.classList.add('show'); }
+        };
+        reader.readAsDataURL(file);
+      })(i, files[i]);
+    }
+  }
+  updateBtn();
+}
+
+function updateBtn() {
+  var count = files.filter(Boolean).length;
+  var btn = document.getElementById('listBtn');
+  if (count === 0) {
+    btn.textContent = 'Upload screenshots to list';
+    btn.disabled = true;
+  } else {
+    btn.textContent = 'List ' + count + ' Ticket' + (count > 1 ? 's' : '');
+    btn.disabled = !confirmed;
+  }
+}
+
+for (var i = 0; i < MAX_SLOTS; i++) {
+  (function(idx){
+    document.getElementById('file' + idx).addEventListener('change', function(e){
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      files[idx] = file;
+      renderSlots();
+    });
+  })(i);
+}
+
+document.getElementById('confirmCheck').addEventListener('click', function(){
+  confirmed = !confirmed;
+  document.getElementById('checkBox').style.background  = confirmed ? 'rgba(74,222,128,.25)' : 'rgba(74,222,128,.15)';
+  document.getElementById('checkBox').style.borderColor = confirmed ? 'rgba(74,222,128,.5)'  : 'rgba(74,222,128,.3)';
+  document.getElementById('checkMark').style.display    = confirmed ? 'block' : 'none';
+  updateBtn();
+});
+
+document.getElementById('listBtn').addEventListener('click', async function(){
+  var btn      = document.getElementById('listBtn');
+  var errEl    = document.getElementById('bulk-error');
+  var progBar  = document.getElementById('progressBar');
+  var progFill = document.getElementById('progressFill');
+  errEl.style.display = 'none';
+
+  var toUpload = files.filter(Boolean);
+  if (!toUpload.length) return;
+
+  var event      = document.getElementById('eventSelect').value;
+  var eventLabel = document.getElementById('eventSelect').options[document.getElementById('eventSelect').selectedIndex].text;
+  var eurosRaw   = parseFloat(document.getElementById('priceInput').value);
+  if (isNaN(eurosRaw) || eurosRaw <= 0) {
+    errEl.textContent = 'Please enter a valid price.'; errEl.style.display = 'block'; return;
+  }
+  var priceCents = Math.round(eurosRaw * 100);
+
+  btn.disabled = true;
+  progBar.style.display = 'block';
+
+  var errors = [];
+  var successCount = 0;
+
+  for (var i = 0; i < toUpload.length; i++) {
+    var file = toUpload[i];
+    progFill.style.width = Math.round((i / toUpload.length) * 100) + '%';
+    btn.textContent = 'Listing ' + (i+1) + ' of ' + toUpload.length + '…';
+    try {
+      var suffix  = toUpload.length > 1 ? ' #' + (i+1) : '';
+      var listing = await ClubAuth.createListing(eventLabel + suffix, priceCents, event, eventLabel, 1);
+      var uploadData = await ClubAuth.getTicketUploadUrl(listing.id, file.type);
+      await ClubAuth.uploadFileToS3(uploadData.uploadUrl, file);
+      var scan = await ClubAuth.attachTicketUrl(listing.id, uploadData.publicUrl);
+      if (scan.scan && scan.scan.result === 'FAIL') {
+        errors.push('Ticket ' + (i+1) + ' rejected by AI scan');
+      } else {
+        successCount++;
+      }
+    } catch(err) {
+      errors.push('Ticket ' + (i+1) + ': ' + (err.message || 'failed'));
+    }
+  }
+
+  progFill.style.width = '100%';
+
+  if (errors.length) {
+    errEl.textContent = errors.join(' · ');
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = successCount > 0 ? successCount + ' listed, retry others' : 'Retry';
+    return;
+  }
+
+  window.cluboNavigate(event === 'istar' ? 'clubo-v2-05-listings-istar.html' : 'clubo-v2-05-listings-mondays.html');
+});
+
+renderSlots();
+</script>
+</body>
+</html>

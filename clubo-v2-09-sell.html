@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — 09 Sell Ticket</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+
+<style>
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:22px;}
+.label{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:6px;}
+.input-wrap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:relative;}
+.input-text{font-size:13px;font-weight:400;color:rgba(255,255,255,.7);}
+.chev{opacity:.35;}
+.price-wrap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 14px;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.currency{font-size:18px;font-weight:600;color:rgba(255,255,255,.35);}
+.price-input{border:none;background:transparent;outline:none;color:#fff;font-family:'Fraunces',serif;font-size:34px;font-weight:700;width:100%;}
+.hint{font-size:11px;font-weight:300;color:rgba(255,255,255,.28);margin-bottom:16px;}
+.tag{display:inline-flex;align-items:center;justify-content:center;height:18px;padding:0 8px;border-radius:999px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:rgba(239,68,68,.8);margin-left:8px;}
+.upload-card{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.22);border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
+.up-left{display:flex;flex-direction:column;gap:3px;}
+.up-top{display:flex;align-items:center;gap:8px;color:#4ADE80;font-weight:600;}
+.up-sub{font-size:10px;font-weight:300;color:rgba(255,255,255,.25);}
+.thumb{width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-size:10px;margin-bottom:10px;}
+.checkbox{display:flex;align-items:flex-start;gap:10px;margin-top:4px;}
+.box{width:18px;height:18px;border-radius:6px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);display:flex;align-items:center;justify-content:center;color:#4ADE80;flex-shrink:0;margin-top:2px;}
+.cb-text{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);line-height:1.55;}
+.cta-area{margin-top:auto; padding-bottom:14px;}
+.cta-btn{width:100%;height:52px;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#08080F;display:flex;align-items:center;justify-content:center;text-decoration:none;}
+
+/* extra link */
+.secondary-link{margin-top:10px;display:inline-flex;align-items:center;justify-content:center;height:36px;width:100%;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:500;color:rgba(255,255,255,.45);text-decoration:none;}
+
+
+/* Nav */
+</style>
+</head>
+
+<body>
+<div class="page-label">Clubo · 09 — Sell Ticket</div>
+
+<div class="phone">
+    <div class="top-bar">
+      <div class="top-title">Clubo</div>
+    </div>
+  <div class="screen">
+    <div class="title">Sell Ticket</div>
+
+    <div class="label">Event</div>
+    <div class="input-wrap" style="padding:0;">
+      <select id="eventSelect" style="width:100%;background:transparent;border:none;outline:none;color:rgba(255,255,255,.7);font-family:'DM Sans',sans-serif;font-size:13px;padding:14px;appearance:none;-webkit-appearance:none;">
+        <option value="mondays">Mondays · Fabrik Madrid</option>
+        <option value="istar">Istar · Istar Madrid</option>
+        <option value="other">Other Event</option>
+      </select>
+      <svg class="chev" style="position:absolute;right:14px;pointer-events:none;" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 6l3 3 3-3" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+
+    <div class="label">Your Price</div>
+    <div class="price-wrap">
+      <div class="currency">€</div>
+      <input class="price-input" value="14" inputmode="numeric" />
+    </div>
+    <div class="hint">Face value: €12 · Max: €20</div>
+
+    <div class="label">Ticket Screenshot <span class="tag">Mandatory</span></div>
+    <div class="upload-card">
+      <div class="up-left">
+        <div class="up-top">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 11V3" stroke="#4ADE80" stroke-width="1.5" stroke-linecap="round"/><path d="M5 6l3-3 3 3" stroke="#4ADE80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13h10" stroke="#4ADE80" stroke-width="1.5" stroke-linecap="round"/></svg>
+          1 screenshot uploaded
+        </div>
+        <div class="up-sub">Tap to replace or add more</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9l2.5 2.5L13 6" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="9" r="7.2" stroke="rgba(74,222,128,.35)" stroke-width="1.2"/></svg>
+    </div>
+
+    <div class="thumb">Ticket 1</div>
+
+    <div class="checkbox">
+      <div class="box">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.2 6.2l2.2 2.2L9.8 3" stroke="#4ADE80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="cb-text">I confirm this ticket has not been sold elsewhere.</div>
+    </div>
+
+    <div class="cta-area">
+      <div style="display:flex;gap:8px;margin-bottom:0;">
+        <a class="secondary-link" href="clubo-v2-11-seller-sold.html" style="flex:1;">My Sales</a>
+        <a class="secondary-link" href="clubo-v2-10-bulk.html" style="flex:1;">Bulk list</a>
+      </div>
+      <div id="sell-error" style="display:none;color:rgba(239,68,68,.85);font-size:12px;font-weight:400;text-align:center;margin-bottom:8px;"></div>
+      <button id="listBtn" class="cta-btn" type="button">List Ticket</button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-09-sell.html">
+      <div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-12-profile.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div>
+    </a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+<script>
+document.getElementById('listBtn').addEventListener('click', async function(){
+  var btn     = document.getElementById('listBtn');
+  var errEl   = document.getElementById('sell-error');
+  errEl.style.display = 'none';
+
+  var eventSelect = document.getElementById('eventSelect');
+  var priceInput  = document.querySelector('.price-input');
+  var event       = eventSelect ? eventSelect.value : 'other';
+  var eventTitle  = eventSelect ? eventSelect.options[eventSelect.selectedIndex].text : 'Ticket';
+  var eurosRaw    = priceInput ? parseFloat(priceInput.value) : NaN;
+
+  if (isNaN(eurosRaw) || eurosRaw <= 0) {
+    errEl.textContent = 'Please enter a valid price.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  var priceCents = Math.round(eurosRaw * 100);
+
+  btn.disabled = true;
+  btn.textContent = 'Listing…';
+
+  try {
+    await ClubAuth.createListing(eventTitle, priceCents, event, eventTitle, 1);
+    var dest = event === 'istar'
+      ? 'clubo-v2-05-listings-istar.html'
+      : 'clubo-v2-05-listings-mondays.html';
+    window.cluboNavigate(dest);
+  } catch(err) {
+    errEl.textContent = err.message || 'Could not create listing. Try again.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'List Ticket';
+  }
+});
+</script>
+</body>
+</html>

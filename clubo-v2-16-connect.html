@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — Bank Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.screen::-webkit-scrollbar{display:none;}
+.back-row{display:flex;align-items:center;gap:6px;margin-bottom:20px;cursor:pointer;opacity:.4;}
+.back-row span{font-size:13px;font-weight:300;color:#fff;}
+.title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:8px;}
+.sub{font-size:13px;font-weight:300;color:rgba(255,255,255,.35);line-height:1.6;margin-bottom:24px;}
+
+/* Status card */
+.status-card{background:#0F0F1A;border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden;}
+.status-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);}
+.status-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.status-icon.pending{background:rgba(255,200,50,.1);border:1px solid rgba(255,200,50,.2);}
+.status-icon.verified{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);}
+.status-icon.none{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);}
+.status-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;}
+.status-desc{font-size:12px;font-weight:300;color:rgba(255,255,255,.38);line-height:1.55;}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;}
+.step{display:flex;align-items:flex-start;gap:12px;}
+.step-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:rgba(255,255,255,.4);flex-shrink:0;margin-top:1px;}
+.step-num.done{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.35);color:#4ADE80;}
+.step-text{flex:1;}
+.step-label{font-size:13px;font-weight:500;color:rgba(255,255,255,.75);margin-bottom:2px;}
+.step-sub{font-size:11px;font-weight:300;color:rgba(255,255,255,.3);line-height:1.5;}
+
+/* CTA */
+.cta-btn{width:100%;height:52px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:opacity .2s;}
+.cta-btn:disabled{opacity:.4;cursor:not-allowed;}
+.cta-btn.secondary{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);margin-top:10px;}
+
+.spinner{animation:spin 1s linear infinite;display:none;}
+.spinner.show{display:inline-block;}
+
+.note{font-size:11px;font-weight:300;color:rgba(255,255,255,.2);text-align:center;margin-top:12px;line-height:1.55;}
+.note a{color:rgba(255,255,255,.35);text-decoration:underline;text-underline-offset:3px;}
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · 16 — Bank Setup</div>
+<div class="phone">
+  <div class="top-bar"><div class="top-title">Clubo</div></div>
+  <div class="screen">
+
+    <a class="back-row" href="clubo-v2-15-balance.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Balance</span>
+    </a>
+
+    <div class="title">Bank Account Setup</div>
+    <div class="sub">Connect your bank account to withdraw your Clubo earnings directly.</div>
+
+    <!-- Dynamic status card -->
+    <div class="status-card" id="statusCard">
+      <div class="status-icon none" id="statusIcon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="7" width="16" height="11" rx="2" stroke="rgba(255,255,255,.4)" stroke-width="1.4"/><path d="M3 10h16" stroke="rgba(255,255,255,.4)" stroke-width="1.4"/><path d="M7 14h4" stroke="rgba(255,255,255,.4)" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="status-title" id="statusTitle">Not connected</div>
+      <div class="status-desc" id="statusDesc">You haven't set up a bank account yet. It only takes a few minutes via Stripe.</div>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" id="step1">1</div>
+        <div class="step-text">
+          <div class="step-label">Connect via Stripe</div>
+          <div class="step-sub">Tap below — you'll be taken to Stripe's secure onboarding.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" id="step2">2</div>
+        <div class="step-text">
+          <div class="step-label">Enter bank details</div>
+          <div class="step-sub">IBAN and identity verification. Takes 2–3 minutes.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" id="step3">3</div>
+        <div class="step-text">
+          <div class="step-label">Return here</div>
+          <div class="step-sub">Once done, your account is verified and withdrawals are enabled.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="errMsg" style="display:none;color:rgba(239,68,68,.85);font-size:12px;text-align:center;margin-bottom:10px;"></div>
+
+    <button class="cta-btn" id="connectBtn">
+      <svg class="spinner" id="spinner" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5A6.5 6.5 0 1114.5 8" stroke="rgba(8,8,15,.6)" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span id="btnText">Connect Bank Account</span>
+    </button>
+    <button class="cta-btn secondary" id="refreshBtn" style="display:none;">Check verification status</button>
+
+    <div class="note">Powered by <a href="#">Stripe Connect</a>. Your bank details are never stored by Clubo.</div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div></a>
+    <a class="nav-link" href="clubo-v2-09-sell.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div></a>
+    <a class="nav-link" href="clubo-v2-15-balance.html"><div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.9)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div></a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div></a>
+    <a class="nav-link" href="clubo-v2-12-profile.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div></a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+<script>
+var API = 'http://' + window.location.hostname + ':3000';
+
+function setStatus(status) {
+  var icon   = document.getElementById('statusIcon');
+  var title  = document.getElementById('statusTitle');
+  var desc   = document.getElementById('statusDesc');
+  var btn    = document.getElementById('connectBtn');
+  var btnTxt = document.getElementById('btnText');
+  var refresh= document.getElementById('refreshBtn');
+  var s1     = document.getElementById('step1');
+  var s2     = document.getElementById('step2');
+  var s3     = document.getElementById('step3');
+
+  if (status === 'verified') {
+    icon.className  = 'status-icon verified';
+    icon.innerHTML  = '<svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M5 11l4 4 8-8" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    title.textContent = 'Bank account verified';
+    desc.textContent  = 'Withdrawals are enabled. You can request a payout from the Balance screen.';
+    btnTxt.textContent = 'Update bank details';
+    btn.style.background = 'rgba(255,255,255,.07)';
+    btn.style.border = '1px solid rgba(255,255,255,.1)';
+    btn.style.color = 'rgba(255,255,255,.55)';
+    s1.className = 'step-num done'; s2.className = 'step-num done'; s3.className = 'step-num done';
+    refresh.style.display = 'none';
+  } else if (status === 'pending') {
+    icon.className  = 'status-icon pending';
+    icon.innerHTML  = '<svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="7.5" stroke="rgba(255,200,50,.7)" stroke-width="1.4"/><path d="M11 7.5v4l2.5 2.5" stroke="rgba(255,200,50,.7)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    title.textContent = 'Verification in progress';
+    desc.textContent  = 'Stripe is reviewing your details. Tap below to complete any missing steps or check your status.';
+    btnTxt.textContent = 'Continue setup';
+    s1.className = 'step-num done'; s2.className = 'step-num'; s3.className = 'step-num';
+    refresh.style.display = 'block';
+  } else {
+    // none
+    icon.className  = 'status-icon none';
+    icon.innerHTML  = '<svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="7" width="16" height="11" rx="2" stroke="rgba(255,255,255,.4)" stroke-width="1.4"/><path d="M3 10h16" stroke="rgba(255,255,255,.4)" stroke-width="1.4"/><path d="M7 14h4" stroke="rgba(255,255,255,.4)" stroke-width="1.4" stroke-linecap="round"/></svg>';
+    title.textContent = 'Not connected';
+    desc.textContent  = "You haven't set up a bank account yet. It only takes a few minutes via Stripe.";
+    btnTxt.textContent = 'Connect Bank Account';
+    btn.style.background = ''; btn.style.border = ''; btn.style.color = '';
+    s1.className = 'step-num'; s2.className = 'step-num'; s3.className = 'step-num';
+    refresh.style.display = 'none';
+  }
+}
+
+// Load current status on page load
+window.addEventListener('DOMContentLoaded', async function(){
+  try {
+    var token = ClubAuth.getToken();
+    var res   = await fetch(API + '/connect/status', { headers: { 'Authorization': 'Bearer ' + token } });
+    var data  = await res.json();
+    setStatus(data.status || 'none');
+  } catch(e) {
+    setStatus('none');
+  }
+});
+
+// Connect button — get onboarding URL and redirect
+document.getElementById('connectBtn').addEventListener('click', async function(){
+  var btn     = document.getElementById('connectBtn');
+  var spinner = document.getElementById('spinner');
+  var btnTxt  = document.getElementById('btnText');
+  var errMsg  = document.getElementById('errMsg');
+  errMsg.style.display = 'none';
+  btn.disabled = true;
+  spinner.classList.add('show');
+  btnTxt.textContent = 'Opening Stripe…';
+
+  try {
+    var token = ClubAuth.getToken();
+    var res   = await fetch(API + '/connect/onboard', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Could not start onboarding');
+    // Open Stripe Connect onboarding — user returns via return_url set in backend
+    window.location.href = data.url;
+  } catch(err) {
+    errMsg.textContent = err.message || 'Something went wrong. Try again.';
+    errMsg.style.display = 'block';
+    btn.disabled = false;
+    spinner.classList.remove('show');
+    btnTxt.textContent = 'Connect Bank Account';
+  }
+});
+
+// Refresh status after returning from Stripe
+document.getElementById('refreshBtn').addEventListener('click', async function(){
+  var btn = document.getElementById('refreshBtn');
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+  try {
+    var token = ClubAuth.getToken();
+    // Call connect/return to sync status then redirect back to balance
+    var res  = await fetch(API + '/connect/return', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    });
+    var data = await res.json();
+    setStatus(data.verified ? 'verified' : 'pending');
+  } catch(e) {}
+  btn.textContent = 'Check verification status';
+  btn.disabled = false;
+});
+
+// If returning from Stripe onboarding (URL has ?return=1 or ?refresh=1)
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('return') || params.get('refresh')) {
+    // Auto-call return endpoint to sync
+    var token = ClubAuth.getToken();
+    if (token) {
+      fetch(API + '/connect/return', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+      }).then(function(r){ return r.json(); }).then(function(data){
+        setStatus(data.verified ? 'verified' : 'pending');
+      }).catch(function(){});
+    }
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — 08A Tickets</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.screen::-webkit-scrollbar{display:none;}
+.top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff;}
+.sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);margin-top:2px;}
+.card{background:#0F0F1A;border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:16px;position:relative;overflow:hidden;margin-bottom:14px;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);}
+.ticket-preview{width:100%;height:170px;border-radius:14px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.ticket-title{position:absolute;top:12px;left:14px;font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:rgba(255,255,255,.75);}
+.ticket-sub{position:absolute;top:33px;left:14px;font-size:10px;font-weight:300;color:rgba(255,255,255,.35);}
+.ticket-venue{position:absolute;bottom:12px;left:14px;font-size:9px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);}
+.qr-wrap{width:86px;height:86px;position:absolute;right:14px;top:50%;transform:translateY(-50%);}
+.qr-inner{width:86px;height:86px;background:#fff;border-radius:8px;display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:8px;filter:blur(7px);opacity:.9;}
+.qr-cell{background:#111;border-radius:1px;}
+.qr-inner .w{background:#fff;}
+.lock-overlay{position:absolute;inset:0;background:rgba(8,8,15,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;}
+.lock-overlay-icon{font-size:26px;}
+.lock-overlay-text{font-size:11px;font-weight:600;color:rgba(0,0,0,.45);letter-spacing:.07em;text-transform:uppercase;background:rgba(255,255,255,.85);border-radius:8px;padding:4px 10px;}
+.status-badge{font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;}
+.order-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+.order-id{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);}
+.order-price{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#fff;}
+.action-btn{margin-top:8px;width:100%;height:36px;border-radius:10px;border:none;font-size:11px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-cancel{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3)!important;color:rgba(239,68,68,.7);}
+
+.section-label{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.18);margin:20px 0 10px;}
+.empty-state{text-align:center;padding:60px 0;color:rgba(255,255,255,.2);font-size:13px;font-weight:300;line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · 08A — Tickets</div>
+
+<div class="phone">
+  <div class="top-bar">
+    <div class="top-title">Clubo</div>
+  </div>
+  <div class="screen">
+    <div class="top-row">
+      <div>
+        <div class="title">Tickets</div>
+        <div class="sub" id="ticketsSub">Your purchased tickets</div>
+      </div>
+    </div>
+    <div id="ticketsList"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-09-sell.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-15-balance.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.25)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html">
+      <div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-12-profile.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div>
+    </a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+
+<script>
+var STATUS_MAP = {
+  CREATED:          { label: 'Pending Payment', color: 'rgba(251,191,36,.9)',  bg: 'rgba(251,191,36,.12)' },
+  PAYMENT_PENDING:  { label: 'Processing',      color: 'rgba(251,191,36,.9)',  bg: 'rgba(251,191,36,.12)' },
+  PAID:             { label: 'Paid',             color: 'rgba(74,222,128,.9)',  bg: 'rgba(74,222,128,.12)' },
+  DELIVERED:        { label: 'Delivered',        color: 'rgba(74,222,128,.9)',  bg: 'rgba(74,222,128,.12)' },
+  COMPLETED:        { label: 'Completed',        color: 'rgba(74,222,128,.9)',  bg: 'rgba(74,222,128,.12)' },
+  CANCELED:         { label: 'Canceled',         color: 'rgba(255,255,255,.3)', bg: 'rgba(255,255,255,.05)' },
+  EXPIRED:          { label: 'Expired',          color: 'rgba(239,68,68,.7)',   bg: 'rgba(239,68,68,.1)'   },
+  DISPUTE_OPEN:     { label: 'Dispute',          color: 'rgba(239,68,68,.9)',   bg: 'rgba(239,68,68,.12)'  },
+};
+
+function makeQR() {
+  var wrap = document.createElement('div');
+  wrap.className = 'qr-wrap';
+  var inner = document.createElement('div');
+  inner.className = 'qr-inner';
+  var pattern = [0,1,0,0,1,0,0, 0,0,1,0,0,1,0, 1,0,0,1,0,0,1, 0,1,0,0,1,0,0, 0,0,1,0,0,1,0, 1,0,0,1,0,0,1, 0,1,0,0,1,0,0];
+  pattern.forEach(function(v) {
+    var cell = document.createElement('div');
+    if (v) cell.className = 'w';
+    inner.appendChild(cell);
+  });
+  wrap.appendChild(inner);
+  return wrap;
+}
+
+function buildCard(order) {
+  var l = order.listing;
+  var eventLabel = l.event === 'mondays' ? 'Mondays · Fabrik Madrid'
+                 : l.event === 'istar'   ? 'Istar · Istar Madrid'
+                 : (l.eventLabel || l.title);
+  var eventShort = l.event === 'mondays' ? 'Mondays'
+                 : l.event === 'istar'   ? 'Istar'
+                 : l.title;
+  var isPaid  = ['PAID','DELIVERED','COMPLETED','DISPUTE_OPEN','DISPUTE_RESOLVED'].includes(order.status);
+  var isLocked = isPaid && l.unlockTime && new Date() < new Date(l.unlockTime);
+  var s = STATUS_MAP[order.status] || { label: order.status, color: 'rgba(255,255,255,.4)', bg: 'rgba(255,255,255,.06)' };
+
+  var card = document.createElement('div');
+  card.className = 'card';
+
+  // Header row
+  var header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;';
+  var evLabel = document.createElement('div');
+  evLabel.style.cssText = 'font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.25);';
+  evLabel.textContent = eventLabel;
+  var badge = document.createElement('span');
+  badge.className = 'status-badge';
+  badge.style.color = s.color;
+  badge.style.background = s.bg;
+  badge.textContent = s.label;
+  header.appendChild(evLabel);
+  header.appendChild(badge);
+  card.appendChild(header);
+
+  // Ticket preview
+  var preview = document.createElement('div');
+  preview.className = 'ticket-preview';
+  var tTitle = document.createElement('div');
+  tTitle.className = 'ticket-title';
+  tTitle.textContent = eventShort;
+  var tSub = document.createElement('div');
+  tSub.className = 'ticket-sub';
+  tSub.textContent = 'General Admission';
+  var tVenue = document.createElement('div');
+  tVenue.className = 'ticket-venue';
+  tVenue.textContent = eventLabel;
+  preview.appendChild(tTitle);
+  preview.appendChild(tSub);
+  preview.appendChild(tVenue);
+  preview.appendChild(makeQR());
+
+  if (!isPaid || isLocked) {
+    var overlay = document.createElement('div');
+    overlay.className = 'lock-overlay';
+    var icon = document.createElement('div');
+    icon.className = 'lock-overlay-icon';
+    icon.textContent = '🔒';
+    var txt = document.createElement('div');
+    txt.className = 'lock-overlay-text';
+    txt.textContent = isPaid ? 'Unlocks at door open' : 'Awaiting payment';
+    overlay.appendChild(icon);
+    overlay.appendChild(txt);
+    preview.appendChild(overlay);
+  }
+  card.appendChild(preview);
+
+  // Footer
+  var footer = document.createElement('div');
+  footer.className = 'order-footer';
+  var ordId = document.createElement('div');
+  ordId.className = 'order-id';
+  ordId.textContent = 'Order ' + order.id.slice(-6).toUpperCase();
+  var price = document.createElement('div');
+  price.className = 'order-price';
+  price.textContent = ClubAuth.formatPrice(order.totalPrice);
+  footer.appendChild(ordId);
+  footer.appendChild(price);
+  card.appendChild(footer);
+
+  // Action buttons for unpaid orders
+  if (order.status === 'CREATED' || order.status === 'PAYMENT_PENDING') {
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className = 'action-btn btn-cancel';
+    cancelBtn.textContent = 'Cancel Order';
+    cancelBtn.addEventListener('click', function() {
+      ClubAuth.cancelOrder(order.id).then(loadOrders).catch(function(err) { alert(err.message); });
+    });
+    card.appendChild(cancelBtn);
+
+  }
+
+  return card;
+}
+
+function loadOrders() {
+  var container = document.getElementById('ticketsList');
+  var sub = document.getElementById('ticketsSub');
+  container.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(255,255,255,.2);font-size:13px;">Loading…</div>';
+
+  ClubAuth.getMyOrders().then(function(orders) {
+    container.innerHTML = '';
+    if (!orders || orders.length === 0) {
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = 'No tickets yet.<br><span style="opacity:.5">Buy a ticket to see it here.</span>';
+      container.appendChild(empty);
+      if (sub) sub.textContent = 'No tickets purchased yet';
+      return;
+    }
+
+    var active = orders.filter(function(o) { return !['CANCELED','EXPIRED'].includes(o.status); });
+    var past   = orders.filter(function(o) { return  ['CANCELED','EXPIRED'].includes(o.status); });
+
+    active.forEach(function(o) { container.appendChild(buildCard(o)); });
+
+    if (past.length > 0) {
+      var label = document.createElement('div');
+      label.className = 'section-label';
+      label.textContent = 'Past Orders';
+      container.appendChild(label);
+      past.forEach(function(o) { container.appendChild(buildCard(o)); });
+    }
+
+    if (sub) sub.textContent = active.length + ' active ticket' + (active.length !== 1 ? 's' : '');
+  }).catch(function(err) {
+    var container = document.getElementById('ticketsList');
+    container.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(239,68,68,.5);font-size:13px;">Could not load tickets. Is the server running?</div>';
+    console.error('Orders error:', err);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', loadOrders);
+</script>
+</body>
+</html>

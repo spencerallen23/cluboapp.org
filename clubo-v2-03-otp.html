@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Clubo — 03 OTP</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(54px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.back-row{display:flex;align-items:center;gap:6px;margin-bottom:28px;cursor:pointer;opacity:.4;color:inherit;width:max-content;}
+.back-row span{font-size:13px;font-weight:300;color:#fff;}
+.title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1.15;margin-bottom:8px;}
+.sub{font-size:13px;font-weight:300;color:rgba(255,255,255,.32);line-height:1.5;margin-bottom:28px;}
+.sub strong{color:rgba(255,255,255,.6);font-weight:400;}
+.otp-wrap{display:flex;flex-direction:column;gap:14px;}
+.otp-row{display:flex;gap:8px;justify-content:space-between;}
+.otp-input{width:38px;height:52px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;text-align:center;font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#fff;outline:none;-webkit-user-select:none;}
+.otp-input:focus{border-color:rgba(255,255,255,.45);}
+.helper{font-size:11px;font-weight:300;color:rgba(255,255,255,.25);line-height:1.5;}
+.helper a{color:rgba(255,255,255,.55);text-decoration:underline;text-underline-offset:3px;}
+.cta-area{margin-top:auto;display:flex;flex-direction:column;gap:10px;}
+.cta-btn{width:100%;height:52px;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.1);}
+.cta-btn[disabled]{background:rgba(255,255,255,.08);color:rgba(255,255,255,.35);cursor:not-allowed;}
+.cta-btn:not([disabled]){background:#fff;color:#08080F;cursor:pointer;}
+.error{display:none;font-size:11px;font-weight:400;color:rgba(239,68,68,.9);}
+.otp-row.shake{animation:shake .35s ease-in-out;}
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · 03 — OTP Verification</div>
+<div class="phone">
+  <div class="top-bar">
+    <div class="top-title">Clubo</div>
+  </div>
+  <div class="screen">
+    <a class="back-row" href="clubo-v2-02-signup.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Back</span>
+    </a>
+    <div class="title">Enter verification<br>code</div>
+    <div class="sub">Sent to <strong id="otp-phone-display">your phone</strong></div>
+    <div class="otp-wrap">
+      <div class="otp-row" id="otpRow" aria-label="One time passcode">
+        <input class="otp-input" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="1" />
+        <input class="otp-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" />
+        <input class="otp-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" />
+        <input class="otp-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" />
+        <input class="otp-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" />
+        <input class="otp-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" />
+      </div>
+      <div class="error" id="err">Incorrect code. Try again.</div>
+      <div class="helper"><a href="#" id="resend">Resend code</a></div>
+    </div>
+    <div class="cta-area">
+      <button class="cta-btn" id="verifyBtn" disabled>Verify</button>
+    </div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script src="transition.js" defer></script>
+<script>
+const inputs=Array.from(document.querySelectorAll('.otp-input'));
+const verifyBtn=document.getElementById('verifyBtn');
+const otpRow=document.getElementById('otpRow');
+const err=document.getElementById('err');
+function allFilled(){return inputs.every(i=>(i.value||'').trim().length===1);}
+function code(){return inputs.map(i=>(i.value||'').trim()).join('');}
+function setVerifyState(){verifyBtn.disabled=!allFilled();}
+function clearAndFocus(){inputs.forEach(i=>i.value='');setVerifyState();inputs[0].focus();}
+function showError(){err.style.display='block';otpRow.classList.remove('shake');void otpRow.offsetWidth;otpRow.classList.add('shake');}
+function hideError(){err.style.display='none';}
+async function verify(){
+  hideError();
+  if(!allFilled()) return;
+
+  // Disable inputs during request
+  inputs.forEach(i => i.disabled = true);
+  verifyBtn.disabled = true;
+
+  var phone = ClubAuth.getPhone() || '';
+  var otp = code();
+
+  try {
+    // Try real API first
+    var firstName = localStorage.getItem('clubo_first') || '';
+    var lastName  = localStorage.getItem('clubo_last')  || '';
+    await ClubAuth.verifyAuth(phone, otp, firstName, lastName);
+    localStorage.removeItem('clubo_first');
+    localStorage.removeItem('clubo_last');
+    window.cluboNavigate('clubo-v2-04-home.html');
+  } catch(apiErr) {
+    showError();
+    setTimeout(() => {
+      inputs.forEach(i => i.disabled = false);
+      verifyBtn.disabled = false;
+      clearAndFocus();
+    }, 250);
+  }
+}
+window.addEventListener('load',()=>{
+  inputs[0].focus();
+  setTimeout(function(){ inputs[0].focus(); }, 100);
+  var ph = (typeof ClubAuth!=='undefined') ? ClubAuth.getPhone() : '';
+  var el = document.getElementById('otp-phone-display');
+  if(el && ph) el.textContent = ph;
+});
+inputs.forEach((input,idx)=>{
+  input.addEventListener('input',()=>{
+    hideError();
+    input.value=(input.value||'').replace(/\D/g,'').slice(0,1);
+    setVerifyState();
+    if(input.value&&idx<inputs.length-1)inputs[idx+1].focus();
+    if(idx===inputs.length-1&&allFilled())verify();
+  });
+  input.addEventListener('keydown',(e)=>{
+    if(e.key==='Backspace'&&!input.value&&idx>0)inputs[idx-1].focus();
+    if(e.key==='Enter')verify();
+  });
+  input.addEventListener('paste',(e)=>{
+    e.preventDefault();
+    const text=(e.clipboardData||window.clipboardData).getData('text')||'';
+    const digits=text.replace(/\D/g,'').slice(0,6).split('');
+    if(!digits.length)return;
+    digits.forEach((d,i)=>{if(inputs[i])inputs[i].value=d;});
+    setVerifyState();
+    const nextIdx=Math.min(digits.length,inputs.length-1);
+    inputs[nextIdx].focus();
+    if(allFilled())verify();
+  });
+  input.addEventListener('focus',()=>input.select());
+});
+verifyBtn.addEventListener('click',verify);
+document.getElementById('resend').addEventListener('click', async (e) => {
+  e.preventDefault();
+  hideError();
+  clearAndFocus();
+  var resendLink = document.getElementById('resend');
+  var phone = (typeof ClubAuth !== 'undefined') ? ClubAuth.getPhone() : '';
+  if (!phone) return;
+  resendLink.textContent = 'Sending…';
+  resendLink.style.pointerEvents = 'none';
+  try {
+    await ClubAuth.startAuth(phone);
+    resendLink.textContent = 'Code sent!';
+    setTimeout(function(){ resendLink.textContent = 'Resend code'; resendLink.style.pointerEvents = ''; }, 3000);
+  } catch(err) {
+    resendLink.textContent = err.message.includes('Wait') ? err.message : 'Try again later';
+    setTimeout(function(){ resendLink.textContent = 'Resend code'; resendLink.style.pointerEvents = ''; }, 3000);
+  }
+});
+</script>
+</body>
+</html>

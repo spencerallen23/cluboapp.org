@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — Balance</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+
+.title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:18px;}
+
+/* Balance hero card */
+.balance-card{
+  background:linear-gradient(135deg,#0d1a2a 0%,#0a1520 100%);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:14px;
+  position:relative;
+  overflow:hidden;
+}
+.balance-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);}
+.balance-card::after{content:'';position:absolute;bottom:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,.06) 0%,transparent 70%);pointer-events:none;}
+
+.bal-label{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:6px;}
+.bal-amount{font-family:'Fraunces',serif;font-size:38px;font-weight:700;color:#fff;line-height:1;margin-bottom:4px;}
+.bal-amount span{font-size:20px;opacity:.55;margin-right:2px;}
+.bal-sub{font-size:11px;font-weight:300;color:rgba(255,255,255,.28);}
+
+.withdraw-btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;margin-top:16px;
+  background:rgba(74,222,128,.12);
+  border:1px solid rgba(74,222,128,.25);
+  border-radius:12px;
+  padding:11px;
+  color:rgba(74,222,128,.9);
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:500;
+  cursor:pointer;
+  transition:background .15s,border-color .15s;
+}
+.withdraw-btn:hover{background:rgba(74,222,128,.18);border-color:rgba(74,222,128,.4);}
+.withdraw-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* Withdraw modal */
+.modal-overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.7);
+  z-index:100;
+  align-items:flex-end;
+  justify-content:center;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:#0F0F1A;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:22px 22px 0 0;
+  padding:20px 22px 36px;
+  width:100%;
+  max-width:390px;
+  animation:fadeUp .2s ease;
+}
+.modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
+.modal-sub{font-size:11px;color:rgba(255,255,255,.3);font-weight:300;margin-bottom:18px;}
+.modal-label{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:7px;}
+.amount-row{display:flex;align-items:center;gap:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;margin-bottom:10px;}
+.amount-cur{padding:0 12px;font-size:16px;color:rgba(255,255,255,.35);font-weight:300;border-right:1px solid rgba(255,255,255,.07);}
+.amount-input{flex:1;background:transparent;border:none;outline:none;padding:12px 12px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;color:#fff;width:100%;}
+.fee-note{font-size:10px;color:rgba(255,255,255,.22);margin-bottom:16px;}
+.fee-note strong{color:rgba(255,255,255,.4);}
+.modal-cta{
+  width:100%;padding:13px;
+  background:rgba(74,222,128,.15);
+  border:1px solid rgba(74,222,128,.3);
+  border-radius:12px;
+  color:rgba(74,222,128,.9);
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+  cursor:pointer;
+}
+.modal-cta:disabled{opacity:.35;cursor:not-allowed;}
+.modal-cancel{display:block;text-align:center;margin-top:12px;font-size:12px;color:rgba(255,255,255,.25);cursor:pointer;}
+.modal-error{font-size:11px;color:rgba(239,68,68,.8);margin-bottom:10px;display:none;}
+
+/* Section */
+.section-title{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);margin:14px 2px 8px;}
+
+/* Ledger */
+.ledger-list{display:flex;flex-direction:column;gap:7px;}
+.ledger-item{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:13px;
+  padding:11px 13px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.li-left{display:flex;align-items:center;gap:10px;}
+.li-ico{width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.li-ico.credit{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.18);}
+.li-ico.debit{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.18);}
+.li-type{font-size:12px;font-weight:500;color:rgba(255,255,255,.75);}
+.li-date{font-size:10px;font-weight:300;color:rgba(255,255,255,.25);margin-top:2px;}
+.li-amount{font-family:'Fraunces',serif;font-size:14px;font-weight:700;}
+.li-amount.credit{color:rgba(74,222,128,.9);}
+.li-amount.debit{color:rgba(239,68,68,.75);}
+
+.empty-state{text-align:center;padding:32px 0;color:rgba(255,255,255,.2);font-size:13px;font-weight:300;line-height:1.7;}
+
+/* Loading */
+.skeleton{height:14px;border-radius:6px;background:rgba(255,255,255,.06);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* Withdrawal history */
+.w-item{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:13px;
+  padding:11px 13px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.w-status{font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border-radius:20px;margin-top:3px;display:inline-block;}
+.w-status.PAID{background:rgba(74,222,128,.1);color:rgba(74,222,128,.8);}
+.w-status.PROCESSING{background:rgba(251,191,36,.1);color:rgba(251,191,36,.8);}
+.w-status.PENDING{background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);}
+.w-status.FAILED{background:rgba(239,68,68,.1);color:rgba(239,68,68,.75);}
+
+</style>
+</head>
+<body>
+<div class="page-label">Clubo · 15 — Balance</div>
+
+<div class="phone">
+  <div class="top-bar">
+    <div class="top-title">Clubo</div>
+  </div>
+
+  <div class="screen">
+    <div class="title">Balance</div>
+
+    <!-- Balance hero -->
+    <div class="balance-card">
+      <div class="bal-label">Available balance</div>
+      <div class="bal-amount" id="balAmount"><span>€</span><span id="balFigure">—</span></div>
+      <div class="bal-sub" id="balSub">Loading…</div>
+      <button class="withdraw-btn" id="withdrawBtn" disabled>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v7M4 6l3 3 3-3" stroke="rgba(74,222,128,.9)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11h10" stroke="rgba(74,222,128,.9)" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Withdraw to bank
+      </button>
+    </div>
+
+    <!-- Transaction history -->
+    <div class="section-title">Transaction history</div>
+    <div class="ledger-list" id="ledgerList">
+      <div class="skeleton" style="height:52px;border-radius:13px;"></div>
+      <div class="skeleton" style="height:52px;border-radius:13px;margin-top:0;opacity:.6"></div>
+      <div class="skeleton" style="height:52px;border-radius:13px;margin-top:0;opacity:.35"></div>
+    </div>
+
+    <!-- Withdrawal history -->
+    <div class="section-title" id="wHistoryLabel" style="display:none">Withdrawal history</div>
+    <div class="ledger-list" id="withdrawalList"></div>
+
+  </div>
+
+  <!-- 5-button nav — Balance active -->
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-09-sell.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-15-balance.html">
+      <div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.9)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-12-profile.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div>
+    </a>
+  </div>
+</div>
+
+<!-- Withdraw modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Withdraw funds</div>
+    <div class="modal-sub">Sent to your connected bank account · €2.00 fee applies</div>
+    <div class="modal-label">Amount</div>
+    <div class="amount-row">
+      <div class="amount-cur">€</div>
+      <input class="amount-input" id="withdrawAmount" type="number" inputmode="decimal" placeholder="0.00" min="1" step="0.01" />
+    </div>
+    <div class="fee-note" id="feeNote">You'll receive <strong id="netAmount">—</strong> after the €2.00 fee</div>
+    <div class="modal-error" id="modalError"></div>
+    <button class="modal-cta" id="confirmWithdraw">Confirm withdrawal</button>
+    <span class="modal-cancel" id="cancelWithdraw">Cancel</span>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+<script>
+(function(){
+
+  var balanceCents = 0;
+
+  function fmt(cents) {
+    var euros = cents / 100;
+    return Number.isInteger(euros) ? euros.toString() : euros.toFixed(2);
+  }
+
+  function fmtLabel(cents) {
+    return '€' + fmt(cents);
+  }
+
+  function typeLabel(type) {
+    var map = {
+      SALE_CREDIT:      'Sale credit',
+      WITHDRAWAL_DEBIT: 'Withdrawal',
+      WITHDRAWAL_FEE:   'Withdrawal fee',
+      REFUND_DEBIT:     'Refund',
+      ADJUSTMENT:       'Adjustment',
+    };
+    return map[type] || type;
+  }
+
+  function typeIcon(type, isCredit) {
+    if (isCredit) {
+      return '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 10V3M3.5 6l3-3 3 3" stroke="rgba(74,222,128,.85)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+    return '<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 3v7M3.5 7l3 3 3-3" stroke="rgba(239,68,68,.75)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function relDate(iso) {
+    var d = new Date(iso);
+    var now = new Date();
+    var diff = now - d;
+    if (diff < 60000)   return 'Just now';
+    if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+    if (diff < 604800000) return Math.floor(diff/86400000) + 'd ago';
+    return d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+  }
+
+  function renderLedger(ledger) {
+    var list = document.getElementById('ledgerList');
+    list.innerHTML = '';
+    if (!ledger || ledger.length === 0) {
+      list.innerHTML = '<div class="empty-state">No transactions yet.<br><span style="opacity:.5">Earnings from sales will appear here.</span></div>';
+      return;
+    }
+    ledger.forEach(function(entry) {
+      var isCredit = entry.amount > 0;
+      var item = document.createElement('div');
+      item.className = 'ledger-item';
+      item.innerHTML =
+        '<div class="li-left">' +
+          '<div class="li-ico ' + (isCredit ? 'credit' : 'debit') + '">' + typeIcon(entry.type, isCredit) + '</div>' +
+          '<div>' +
+            '<div class="li-type">' + typeLabel(entry.type) + '</div>' +
+            '<div class="li-date">' + relDate(entry.createdAt) + (entry.note ? ' · ' + entry.note : '') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="li-amount ' + (isCredit ? 'credit' : 'debit') + '">' +
+          (isCredit ? '+' : '') + fmtLabel(entry.amount) +
+        '</div>';
+      list.appendChild(item);
+    });
+  }
+
+  function renderWithdrawals(withdrawals) {
+    var list   = document.getElementById('withdrawalList');
+    var label  = document.getElementById('wHistoryLabel');
+    list.innerHTML = '';
+    if (!withdrawals || withdrawals.length === 0) return;
+    label.style.display = '';
+    withdrawals.forEach(function(w) {
+      var item = document.createElement('div');
+      item.className = 'w-item';
+      item.innerHTML =
+        '<div>' +
+          '<div class="li-type">Withdrawal</div>' +
+          '<div class="li-date">' + relDate(w.createdAt) + '</div>' +
+          '<span class="w-status ' + w.status + '">' + w.status + '</span>' +
+        '</div>' +
+        '<div>' +
+          '<div class="li-amount debit" style="text-align:right">' + fmtLabel(-w.amountRequested) + '</div>' +
+          '<div style="font-size:10px;color:rgba(255,255,255,.22);text-align:right;margin-top:2px;">Net ' + fmtLabel(w.amountNet) + '</div>' +
+        '</div>';
+      list.appendChild(item);
+    });
+  }
+
+  function loadBalance() {
+    var token = ClubAuth.getToken();
+    if (!token) return;
+
+    fetch((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'https://clubo-api-production.up.railway.app' : 'https://clubo-api-production.up.railway.app') + '/me/balance', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok) throw new Error(d.error || 'Failed');
+      balanceCents = d.balance;
+      document.getElementById('balFigure').textContent = fmt(balanceCents);
+      document.getElementById('balSub').textContent =
+        balanceCents > 0 ? 'Available to withdraw' : 'Earnings from completed sales appear here';
+      var btn = document.getElementById('withdrawBtn');
+      btn.disabled = balanceCents <= 200; // must have more than fee
+      renderLedger(d.ledger);
+    })
+    .catch(function(err){
+      document.getElementById('balFigure').textContent = '—';
+      document.getElementById('balSub').textContent = 'Could not load balance';
+      document.getElementById('ledgerList').innerHTML =
+        '<div class="empty-state">Unable to load transactions.<br><span style="opacity:.5">Make sure the server is running.</span></div>';
+    });
+
+    // load withdrawal history separately
+    fetch((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'https://clubo-api-production.up.railway.app' : 'https://clubo-api-production.up.railway.app') + '/withdrawals', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d.ok) renderWithdrawals(d.withdrawals); })
+    .catch(function(){});
+  }
+
+  // ── Withdraw modal ──────────────────────────────────────────────────────────
+
+  var overlay   = document.getElementById('modalOverlay');
+  var amtInput  = document.getElementById('withdrawAmount');
+  var netEl     = document.getElementById('netAmount');
+  var errEl     = document.getElementById('modalError');
+  var confirmBtn= document.getElementById('confirmWithdraw');
+
+  document.getElementById('withdrawBtn').addEventListener('click', async function(){
+    // Check Stripe Connect status before showing modal
+    try {
+      var token   = ClubAuth.getToken();
+      var API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'https://clubo-api-production.up.railway.app' : 'https://clubo-api-production.up.railway.app';
+      var res  = await fetch(API_URL + '/connect/status', { headers: { 'Authorization': 'Bearer ' + token } });
+      var data = await res.json();
+      if (!data.ok || data.status !== 'verified') {
+        window.cluboNavigate('clubo-v2-16-connect.html');
+        return;
+      }
+    } catch(e) {
+      // If we can't check, fall through to modal and let server reject it
+    }
+    overlay.classList.add('open');
+    amtInput.value = '';
+    netEl.textContent = '—';
+    errEl.style.display = 'none';
+    confirmBtn.disabled = false;
+    setTimeout(function(){ amtInput.focus(); }, 100);
+  });
+
+  document.getElementById('cancelWithdraw').addEventListener('click', function(){
+    overlay.classList.remove('open');
+  });
+
+  overlay.addEventListener('click', function(e){
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+
+  amtInput.addEventListener('input', function(){
+    var val = parseFloat(amtInput.value);
+    if (!val || val < 1) { netEl.textContent = '—'; return; }
+    var net = val - 2;
+    netEl.textContent = net > 0 ? '€' + net.toFixed(2) : '—';
+  });
+
+  confirmBtn.addEventListener('click', function(){
+    var val = parseFloat(amtInput.value);
+    errEl.style.display = 'none';
+    if (!val || val < 1) { showErr('Enter an amount of at least €1'); return; }
+    var cents = Math.round(val * 100);
+    if (cents > balanceCents) { showErr('Amount exceeds your balance'); return; }
+    if (cents + 200 > balanceCents) { showErr('Insufficient balance after €2 fee'); return; }
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Processing…';
+
+    var token = ClubAuth.getToken();
+    fetch((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'https://clubo-api-production.up.railway.app' : 'https://clubo-api-production.up.railway.app') + '/withdrawals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ amount: cents })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok) throw new Error(d.error || 'Withdrawal failed');
+      overlay.classList.remove('open');
+      confirmBtn.textContent = 'Confirm withdrawal';
+      loadBalance(); // refresh
+    })
+    .catch(function(err){
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm withdrawal';
+      showErr(err.message || 'Withdrawal failed');
+    });
+  });
+
+  function showErr(msg) {
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+  }
+
+  // ── Boot ────────────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', function(){
+    loadBalance();
+  });
+
+})();
+</script>
+</body>
+</html>
