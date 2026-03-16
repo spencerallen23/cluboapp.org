@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — Make an Offer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(100px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.screen::-webkit-scrollbar{display:none;}
+
+.back-row{display:flex;align-items:center;gap:6px;margin-bottom:20px;cursor:pointer;opacity:.4;}
+.back-row span{font-size:13px;font-weight:300;color:#fff;}
+
+.page-title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:4px;}
+.page-sub{font-size:13px;font-weight:300;color:rgba(255,255,255,.35);margin-bottom:24px;}
+
+.section-lbl{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:10px;}
+
+/* Listing summary card */
+.listing-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;}
+.lc-left{}
+.lc-event{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:3px;}
+.lc-title{font-size:14px;font-weight:500;color:#fff;}
+.lc-right{text-align:right;}
+.lc-price{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#fff;}
+.lc-qty{font-size:11px;font-weight:300;color:rgba(255,255,255,.35);margin-top:2px;}
+
+/* Quantity selector */
+.qty-row{display:flex;align-items:center;gap:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;overflow:hidden;margin-bottom:20px;}
+.qty-btn{width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;flex-shrink:0;transition:background .15s;}
+.qty-btn:active{background:rgba(255,255,255,.08);}
+.qty-val{flex:1;text-align:center;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#fff;}
+
+/* Price slider */
+.price-display{display:flex;align-items:baseline;gap:4px;margin-bottom:8px;}
+.price-currency{font-size:18px;font-weight:500;color:rgba(255,255,255,.4);}
+.price-amount{font-family:'Fraunces',serif;font-size:42px;font-weight:700;color:#fff;letter-spacing:-.03em;}
+.price-per{font-size:12px;font-weight:300;color:rgba(255,255,255,.3);align-self:center;}
+
+.slider-wrap{position:relative;margin-bottom:8px;}
+.price-slider{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:rgba(255,255,255,.12);border-radius:2px;outline:none;}
+.price-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+.price-slider::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;cursor:pointer;border:none;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+
+.slider-labels{display:flex;justify-content:space-between;font-size:10px;font-weight:300;color:rgba(255,255,255,.25);margin-bottom:20px;}
+
+/* Total summary */
+.total-bar{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;}
+.total-lbl{font-size:12px;font-weight:300;color:rgba(255,255,255,.4);}
+.total-val{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#fff;}
+
+/* Payment setup */
+.payment-section{margin-bottom:22px;}
+.stripe-element-wrap{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:14px 16px;}
+.payment-verified{display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:12px;}
+.payment-verified-text{font-size:13px;font-weight:400;color:rgba(74,222,128,.9);}
+
+/* Negotiation thread (offer detail view) */
+.thread{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.thread-msg{max-width:80%;padding:12px 14px;border-radius:14px;position:relative;}
+.thread-msg.buyer{align-self:flex-end;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);}
+.thread-msg.seller{align-self:flex-start;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);}
+.thread-msg.system{align-self:center;background:transparent;border:1px solid rgba(255,255,255,.06);text-align:center;max-width:90%;}
+.tm-price{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:-.02em;}
+.tm-qty{font-size:11px;font-weight:300;color:rgba(255,255,255,.35);margin-top:2px;}
+.tm-label{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:6px;}
+.tm-system-text{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);}
+
+/* Counter input */
+.counter-wrap{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:16px;margin-bottom:14px;}
+.counter-input{width:100%;background:transparent;border:none;outline:none;font-family:'Fraunces',serif;font-size:36px;font-weight:700;color:#fff;text-align:center;}
+
+/* Action buttons */
+.action-row{display:flex;gap:10px;margin-bottom:10px;}
+.btn-accept{flex:2;height:50px;background:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;cursor:pointer;transition:opacity .2s;}
+.btn-accept:disabled{opacity:.4;}
+.btn-decline{flex:1;height:50px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:13px;font-weight:400;color:rgba(255,255,255,.5);cursor:pointer;}
+.btn-counter{width:100%;height:44px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:13px;font-weight:400;color:rgba(255,255,255,.6);cursor:pointer;margin-bottom:4px;}
+.btn-primary{width:100%;height:52px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-primary:disabled{opacity:.4;}
+
+.counter-remaining{font-size:11px;font-weight:300;color:rgba(255,255,255,.25);text-align:center;margin-top:8px;}
+
+.error-msg{font-size:12px;color:rgba(239,68,68,.8);text-align:center;margin-top:8px;min-height:18px;}
+.spinner{width:18px;height:18px;border:2px solid rgba(8,8,15,.3);border-top-color:#08080F;border-radius:50%;animation:spin .6s linear infinite;}
+
+/* Status badge */
+.status-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;}
+.status-chip.pending{background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.25);color:rgba(250,204,21,.9);}
+.status-chip.countered{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:rgba(99,102,241,.9);}
+.status-chip.accepted{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:rgba(74,222,128,.9);}
+.status-chip.declined{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:rgba(239,68,68,.9);}
+
+/* Views */
+.view{display:none;}
+.view.active{display:block;}
+</style>
+</head>
+
+<body>
+<div class="page-label">Clubo</div>
+<div class="phone">
+  <div class="top-bar">
+    <div class="top-title">Clubo</div>
+  </div>
+
+  <div class="screen">
+    <!-- ── View: Make Offer ── -->
+    <div id="view-make" class="view active">
+      <div class="back-row" onclick="history.back()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Back</span>
+      </div>
+
+      <div class="page-title">Make an Offer</div>
+      <div class="page-sub" id="make-sub">Set your price and quantity</div>
+
+      <!-- Listing summary -->
+      <div class="section-lbl">Listing</div>
+      <div class="listing-card">
+        <div class="lc-left">
+          <div class="lc-event" id="lc-event">—</div>
+          <div class="lc-title" id="lc-title">—</div>
+        </div>
+        <div class="lc-right">
+          <div class="lc-price" id="lc-price">—</div>
+          <div class="lc-qty" id="lc-qty">— available</div>
+        </div>
+      </div>
+
+      <!-- Quantity -->
+      <div class="section-lbl">Quantity</div>
+      <div class="qty-row" style="margin-bottom:20px;">
+        <button class="qty-btn" id="qty-minus">−</button>
+        <div class="qty-val" id="qty-display">1</div>
+        <button class="qty-btn" id="qty-plus">+</button>
+      </div>
+
+      <!-- Price per ticket -->
+      <div class="section-lbl">Your Offer Price</div>
+      <div class="price-display">
+        <span class="price-currency">€</span>
+        <span class="price-amount" id="price-display">—</span>
+        <span class="price-per">/ ticket</span>
+      </div>
+      <div class="slider-wrap">
+        <input type="range" class="price-slider" id="price-slider" min="0" max="100" value="50">
+      </div>
+      <div class="slider-labels">
+        <span id="slider-min-label">Min</span>
+        <span id="slider-max-label">List price</span>
+      </div>
+
+      <!-- Total -->
+      <div class="total-bar">
+        <div class="total-lbl">Total offer</div>
+        <div class="total-val" id="total-display">€—</div>
+      </div>
+
+      <!-- Payment setup -->
+      <div class="section-lbl">Payment Method</div>
+      <div class="payment-section">
+        <div id="stripe-element-container" class="stripe-element-wrap">
+          <div id="stripe-payment-element"></div>
+        </div>
+        <div id="payment-verified" class="payment-verified" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4" stroke="#4ADE80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="payment-verified-text">Card verified — ready to pay</span>
+        </div>
+      </div>
+
+      <div class="error-msg" id="make-error"></div>
+      <button class="btn-primary" id="submit-offer-btn" disabled>
+        <span id="submit-label">Verify Card to Continue</span>
+      </button>
+      <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.2);text-align:center;margin-top:10px;line-height:1.5;">
+        Your card won't be charged until both sides agree on a price.
+      </div>
+    </div>
+
+    <!-- ── View: Negotiation Thread ── -->
+    <div id="view-thread" class="view">
+      <div class="back-row" onclick="showView('make')">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Back</span>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="page-title">Negotiation</div>
+        <div id="thread-status-chip" class="status-chip pending">Pending</div>
+      </div>
+      <div class="page-sub" id="thread-sub">Waiting for seller response</div>
+
+      <!-- Thread messages -->
+      <div class="thread" id="offer-thread"></div>
+
+      <!-- Counter input (shown when it's your turn) -->
+      <div id="counter-section" style="display:none;">
+        <div class="section-lbl">Your Counter</div>
+        <div class="counter-wrap">
+          <div style="text-align:center;font-size:11px;font-weight:300;color:rgba(255,255,255,.3);margin-bottom:8px;">€ per ticket</div>
+          <input type="number" class="counter-input" id="counter-input" placeholder="0" inputmode="decimal">
+        </div>
+        <div class="counter-remaining" id="counter-remaining"></div>
+      </div>
+
+      <!-- Actions -->
+      <div id="thread-actions" style="display:none;">
+        <div class="action-row">
+          <button class="btn-accept" id="btn-accept">Accept &amp; Pay</button>
+          <button class="btn-decline" id="btn-decline">Decline</button>
+        </div>
+        <button class="btn-counter" id="btn-counter" style="display:none;">Send Counter</button>
+      </div>
+
+      <div class="error-msg" id="thread-error"></div>
+    </div>
+  </div>
+
+  <!-- bottom nav -->
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-09-sell.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div>
+    </a>
+    <a class="nav-link" href="clubo-v2-12-profile.html">
+      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div>
+    </a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+var stripe = Stripe('pk_test_51Ra0YJRwwM9yytUgFLzXpPyEkrMrCXU1SXmyEEfnHRrMISlbRaVa8NNqKktT1L1amqFCLLwBYH1g3d30x9gN8oFl00vJpxhUFi');
+var elements, paymentElement, setupIntentClientSecret;
+var listing = null;
+var qty = 1;
+var pricePerTicket = 0;
+var minPrice = 0;
+var maxPrice = 0;
+var savedSetupIntentId = null;
+var savedPaymentMethodId = null;
+var currentOffer = null;
+var isSeller = false;
+
+// ── Load listing from localStorage ──────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async function() {
+  try {
+    listing = JSON.parse(localStorage.getItem('clubo_viewing_listing') || 'null');
+    if (!listing) { alert('No listing selected'); history.back(); return; }
+
+    // Check if we're viewing an existing offer thread
+    var existingOfferId = localStorage.getItem('clubo_viewing_offer');
+    if (existingOfferId) {
+      localStorage.removeItem('clubo_viewing_offer');
+      await loadOfferThread(existingOfferId);
+      return;
+    }
+
+    setupMakeView();
+    await initStripe();
+  } catch(e) {
+    console.error(e);
+  }
+});
+
+function setupMakeView() {
+  var available = listing.remainingQuantity != null ? listing.remainingQuantity : listing.quantity;
+  var events = { mondays: 'Mondays · Fabrik Madrid', istar: 'Istar · Istar Madrid', other: listing.eventLabel || 'Event' };
+  document.getElementById('lc-event').textContent = events[listing.event] || listing.event;
+  document.getElementById('lc-title').textContent = listing.title;
+  document.getElementById('lc-price').textContent = '€' + (listing.price / 100).toFixed(0);
+  document.getElementById('lc-qty').textContent = available + ' available';
+  document.getElementById('make-sub').textContent = 'Offer between 92%–100% of the list price';
+
+  maxPrice = listing.price;
+  minPrice = Math.ceil(listing.price * 0.92);
+  pricePerTicket = maxPrice; // default to list price
+
+  var slider = document.getElementById('price-slider');
+  slider.min = minPrice;
+  slider.max = maxPrice;
+  slider.value = maxPrice;
+
+  document.getElementById('slider-min-label').textContent = '€' + (minPrice / 100).toFixed(0) + ' (min)';
+  document.getElementById('slider-max-label').textContent = '€' + (maxPrice / 100).toFixed(0) + ' (list)';
+
+  updatePriceDisplay();
+
+  // Qty controls
+  document.getElementById('qty-minus').addEventListener('click', function() {
+    if (qty > 1) { qty--; updateQty(); }
+  });
+  document.getElementById('qty-plus').addEventListener('click', function() {
+    var avail = listing.remainingQuantity != null ? listing.remainingQuantity : listing.quantity;
+    if (qty < avail) { qty++; updateQty(); }
+  });
+
+  slider.addEventListener('input', function() {
+    pricePerTicket = parseInt(this.value);
+    updatePriceDisplay();
+  });
+}
+
+function updateQty() {
+  document.getElementById('qty-display').textContent = qty;
+  updatePriceDisplay();
+}
+
+function updatePriceDisplay() {
+  document.getElementById('price-display').textContent = (pricePerTicket / 100).toFixed(0);
+  var total = pricePerTicket * qty;
+  document.getElementById('total-display').textContent = '€' + (total / 100).toFixed(2);
+}
+
+// ── Stripe SetupIntent for payment readiness ─────────────────────────────────
+async function initStripe() {
+  try {
+    var data = await ClubAuth.apiFetch('/stripe/setup-intent', { method: 'POST' });
+    setupIntentClientSecret = data.clientSecret;
+
+    elements = stripe.elements({ clientSecret: setupIntentClientSecret, appearance: {
+      theme: 'night',
+      variables: { colorBackground: 'rgba(255,255,255,0.04)', colorText: '#ffffff', colorTextSecondary: 'rgba(255,255,255,0.4)', borderRadius: '8px', fontFamily: 'DM Sans, sans-serif' }
+    }});
+
+    paymentElement = elements.create('payment');
+    paymentElement.mount('#stripe-payment-element');
+
+    paymentElement.on('ready', function() {
+      document.getElementById('submit-offer-btn').disabled = false;
+      document.getElementById('submit-label').textContent = 'Submit Offer';
+    });
+
+    document.getElementById('submit-offer-btn').addEventListener('click', submitOffer);
+  } catch(e) {
+    document.getElementById('make-error').textContent = 'Could not load payment form: ' + e.message;
+  }
+}
+
+async function submitOffer() {
+  var btn = document.getElementById('submit-offer-btn');
+  var errEl = document.getElementById('make-error');
+  errEl.textContent = '';
+  btn.disabled = true;
+  document.getElementById('submit-label').innerHTML = '<div class="spinner"></div>';
+
+  try {
+    // Confirm setup intent to save card
+    var result = await stripe.confirmSetup({
+      elements,
+      redirect: 'if_required',
+    });
+
+    if (result.error) {
+      errEl.textContent = result.error.message;
+      btn.disabled = false;
+      document.getElementById('submit-label').textContent = 'Submit Offer';
+      return;
+    }
+
+    savedSetupIntentId = result.setupIntent.id;
+    savedPaymentMethodId = result.setupIntent.payment_method;
+
+    // Show verified state
+    document.getElementById('stripe-element-container').style.display = 'none';
+    document.getElementById('payment-verified').style.display = 'flex';
+
+    // Submit offer to backend
+    var offer = await ClubAuth.apiFetch('/offers', {
+      method: 'POST',
+      body: JSON.stringify({
+        listingId:             listing.id,
+        quantity:              qty,
+        pricePerTicket:        pricePerTicket,
+        stripeSetupIntentId:   savedSetupIntentId,
+        stripePaymentMethodId: savedPaymentMethodId,
+      })
+    });
+
+    currentOffer = offer.offer;
+    await renderThread(currentOffer);
+    showView('thread');
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not submit offer';
+    btn.disabled = false;
+    document.getElementById('submit-label').textContent = 'Submit Offer';
+  }
+}
+
+// ── Thread view ──────────────────────────────────────────────────────────────
+async function loadOfferThread(offerId) {
+  try {
+    var data = await ClubAuth.apiFetch('/offers/' + offerId);
+    currentOffer = data.offer;
+    var me = await ClubAuth.getMe();
+    isSeller = (currentOffer.listing.sellerId === me.id);
+    await renderThread(currentOffer);
+    showView('thread');
+  } catch(e) {
+    alert('Could not load offer: ' + e.message);
+    history.back();
+  }
+}
+
+async function renderThread(offer) {
+  var me = await ClubAuth.getMe();
+  isSeller = (offer.listing && offer.listing.sellerId === me.id) ||
+             (offer.buyer && offer.buyer.id !== me.id && !offer.buyerId === me.id);
+  // Simpler check: if buyerId == me.id then buyer, else seller
+  var amBuyer = (offer.buyerId === me.id);
+  isSeller = !amBuyer;
+
+  var thread = document.getElementById('offer-thread');
+  thread.innerHTML = '';
+
+  // Build thread from events
+  (offer.events || []).forEach(function(ev) {
+    var isMine = (ev.actor === 'buyer') === amBuyer;
+    var msg = document.createElement('div');
+
+    if (ev.action === 'OFFER' || ev.action === 'COUNTER') {
+      msg.className = 'thread-msg ' + ev.actor;
+      msg.innerHTML = '<div class="tm-label">' + (ev.actor === 'buyer' ? (isMine ? 'Your offer' : 'Buyer offer') : (isMine ? 'Your counter' : 'Seller counter')) + '</div>'
+        + '<div class="tm-price">€' + (ev.price / 100).toFixed(0) + ' / ticket</div>'
+        + '<div class="tm-qty">' + ev.quantity + ' ticket' + (ev.quantity > 1 ? 's' : '') + ' · €' + ((ev.price * ev.quantity) / 100).toFixed(2) + ' total</div>';
+    } else {
+      msg.className = 'thread-msg system';
+      var actionText = { ACCEPT: '✓ Accepted', DECLINE: '✗ Declined' }[ev.action] || ev.action;
+      msg.innerHTML = '<div class="tm-system-text">' + actionText + ' by ' + ev.actor + '</div>';
+    }
+    thread.appendChild(msg);
+  });
+
+  // Status chip
+  var chipEl = document.getElementById('thread-status-chip');
+  chipEl.className = 'status-chip ' + offer.status.toLowerCase();
+  chipEl.textContent = offer.status.charAt(0) + offer.status.slice(1).toLowerCase();
+
+  var isMyTurn = (offer.currentActor === 'buyer' && amBuyer) || (offer.currentActor === 'seller' && isSeller);
+  var isActive = ['PENDING','COUNTERED'].includes(offer.status);
+
+  // Sub text
+  var subEl = document.getElementById('thread-sub');
+  if (!isActive) {
+    subEl.textContent = offer.status === 'PAID' ? 'Deal done — check your tickets' : 'This offer is closed';
+  } else if (isMyTurn) {
+    subEl.textContent = 'Your turn — accept, counter, or decline';
+  } else {
+    subEl.textContent = 'Waiting for ' + offer.currentActor + ' response';
+  }
+
+  // Actions
+  var actionsEl = document.getElementById('thread-actions');
+  var counterSection = document.getElementById('counter-section');
+  var counterBtn = document.getElementById('btn-counter');
+
+  if (isActive && isMyTurn) {
+    actionsEl.style.display = 'block';
+    var canCounter = offer.counterCount < 3;
+    counterBtn.style.display = canCounter ? 'block' : 'none';
+    document.getElementById('counter-remaining').textContent = canCounter
+      ? (3 - offer.counterCount) + ' counter' + (3 - offer.counterCount === 1 ? '' : 's') + ' remaining'
+      : 'No counters remaining — accept or decline';
+
+    counterSection.style.display = canCounter ? 'block' : 'none';
+    if (canCounter) {
+      var counterInput = document.getElementById('counter-input');
+      counterInput.value = (offer.pricePerTicket / 100).toFixed(0);
+    }
+
+    document.getElementById('btn-accept').onclick = acceptOffer;
+    document.getElementById('btn-decline').onclick = declineOffer;
+    counterBtn.onclick = sendCounter;
+  } else {
+    actionsEl.style.display = 'none';
+    counterSection.style.display = 'none';
+  }
+}
+
+async function acceptOffer() {
+  var btn = document.getElementById('btn-accept');
+  var errEl = document.getElementById('thread-error');
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
+
+  try {
+    var result = await ClubAuth.apiFetch('/offers/' + currentOffer.id + '/accept', { method: 'POST' });
+
+    if (result.status === 'PAID') {
+      localStorage.setItem('clubo_pending_order', JSON.stringify({ orderId: result.orderId }));
+      window.location.href = 'clubo-v2-07b-processing-added.html';
+    } else if (result.status === 'REQUIRES_ACTION') {
+      // Handle 3DS
+      var confirmResult = await stripe.confirmCardPayment(result.clientSecret);
+      if (confirmResult.error) {
+        errEl.textContent = confirmResult.error.message;
+        btn.disabled = false;
+        btn.textContent = 'Accept & Pay';
+        return;
+      }
+      await ClubAuth.apiFetch('/offers/' + currentOffer.id + '/confirm-payment', {
+        method: 'POST',
+        body: JSON.stringify({ paymentIntentId: confirmResult.paymentIntent.id })
+      });
+      window.location.href = 'clubo-v2-07b-processing-added.html';
+    }
+  } catch(e) {
+    errEl.textContent = e.message || 'Payment failed';
+    btn.disabled = false;
+    btn.textContent = 'Accept & Pay';
+  }
+}
+
+async function declineOffer() {
+  try {
+    await ClubAuth.apiFetch('/offers/' + currentOffer.id + '/decline', { method: 'POST' });
+    var data = await ClubAuth.apiFetch('/offers/' + currentOffer.id);
+    currentOffer = data.offer;
+    await renderThread(currentOffer);
+  } catch(e) {
+    document.getElementById('thread-error').textContent = e.message;
+  }
+}
+
+async function sendCounter() {
+  var input = document.getElementById('counter-input');
+  var priceEuros = parseFloat(input.value);
+  if (isNaN(priceEuros) || priceEuros <= 0) {
+    document.getElementById('thread-error').textContent = 'Enter a valid price';
+    return;
+  }
+  var priceCents = Math.round(priceEuros * 100);
+  var floor = Math.ceil(currentOffer.listing.price * 0.92);
+  if (priceCents < floor) {
+    document.getElementById('thread-error').textContent = 'Minimum price is €' + (floor / 100).toFixed(0);
+    return;
+  }
+  try {
+    var result = await ClubAuth.apiFetch('/offers/' + currentOffer.id + '/counter', {
+      method: 'POST',
+      body: JSON.stringify({ pricePerTicket: priceCents })
+    });
+    currentOffer = result.offer;
+    await renderThread(currentOffer);
+  } catch(e) {
+    document.getElementById('thread-error').textContent = e.message;
+  }
+}
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.getElementById('view-' + name).classList.add('active');
+}
+</script>
+</body>
+</html>
