@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — Student Ticket Exchange</title>
+<meta name="description" content="The trusted way for students to buy and sell club night tickets. Verified university emails only.">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080810;
+    --surface: #0f0f1a;
+    --border: rgba(255,255,255,.07);
+    --white: #ffffff;
+    --muted: rgba(255,255,255,.38);
+    --accent: rgba(255,255,255,.08);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Noise grain overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: .6;
+  }
+
+  /* ── Ambient glow ── */
+  .glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(255,255,255,.03) 0%, transparent 70%);
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s, background .3s;
+  }
+
+  nav.scrolled {
+    background: rgba(8,8,16,.85);
+    backdrop-filter: blur(12px);
+    border-color: var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .nav-pill {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 100px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp .8s .1s cubic-bezier(.16,1,.3,1) forwards;
+  }
+
+  .hero-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(56px, 10vw, 112px);
+    font-weight: 700;
+    line-height: .95;
+    letter-spacing: -.04em;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp .8s .2s cubic-bezier(.16,1,.3,1) forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--muted);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--muted);
+    max-width: 380px;
+    line-height: 1.65;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp .8s .3s cubic-bezier(.16,1,.3,1) forwards;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp .8s .4s cubic-bezier(.16,1,.3,1) forwards;
+  }
+
+  .btn-primary {
+    background: var(--white);
+    color: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    padding: 14px 28px;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity .2s;
+  }
+
+  .btn-primary:hover { opacity: .88; }
+
+  .btn-ghost {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 14px 20px;
+    transition: color .2s;
+  }
+
+  .btn-ghost:hover { color: var(--white); }
+
+  /* ── Scroll indicator ── */
+  .scroll-hint {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp .8s .8s cubic-bezier(.16,1,.3,1) forwards;
+  }
+
+  .scroll-hint span {
+    font-size: 9px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.2);
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(255,255,255,.2), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: .3; }
+    50% { opacity: 1; }
+  }
+
+  /* ── How it works ── */
+  .section {
+    padding: 100px 24px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 9px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 48px;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .step {
+    background: var(--surface);
+    padding: 36px 32px;
+    position: relative;
+  }
+
+  .step-num {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: rgba(255,255,255,.08);
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: var(--white);
+  }
+
+  .step-body {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── Trust section ── */
+  .trust {
+    padding: 80px 24px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .trust-title {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -.03em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .trust-title em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--muted);
+  }
+
+  .trust-sub {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 400px;
+    margin: 0 auto 48px;
+    line-height: 1.6;
+  }
+
+  .trust-pills {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: .08em;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 100px;
+    background: var(--surface);
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 40px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-logo {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    color: var(--white);
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 24px;
+  }
+
+  .footer-links a {
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+  }
+
+  .footer-links a:hover { color: var(--white); }
+
+  .footer-copy {
+    font-size: 11px;
+    color: rgba(255,255,255,.18);
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+    .section { padding: 60px 20px; }
+    .step { padding: 28px 24px; }
+    footer { padding: 32px 20px; }
+    .footer-links { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+
+<nav id="nav">
+  <a class="nav-logo" href="/">Clubo</a>
+  <span class="nav-pill">Coming soon</span>
+</nav>
+
+<section class="hero">
+  <p class="hero-eyebrow">Student ticket exchange · Madrid</p>
+  <h1 class="hero-title">Buy &amp; sell<br><em>club tickets</em><br>safely.</h1>
+  <p class="hero-sub">The trusted marketplace for students to resell club night tickets. Verified university emails only.</p>
+  <div class="hero-cta">
+    <a href="mailto:hello@cluboapp.org" class="btn-primary">Get early access</a>
+    <a href="#how" class="btn-ghost">How it works →</a>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <p class="section-label">How it works</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Verify your .edu email</div>
+      <div class="step-body">Sign in with your university Google account. No personal emails — students only.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">List or browse tickets</div>
+      <div class="step-body">Sellers upload a ticket screenshot. Our AI scans it to confirm it's real before it goes live.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Pay securely</div>
+      <div class="step-body">Funds are held safely. The QR code unlocks at the venue doors — not before.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-title">Seller gets paid</div>
+      <div class="step-body">Once you're through the doors, the seller receives their payout automatically.</div>
+    </div>
+  </div>
+</section>
+
+<div class="trust">
+  <h2 class="trust-title">Built for students<br><em>studying abroad.</em></h2>
+  <p class="trust-sub">No more group chats, Venmo risks, or fake tickets. Just a simple, safe way to trade club night access.</p>
+  <div class="trust-pills">
+    <span class="pill">AI ticket verification</span>
+    <span class="pill">Verified .edu emails only</span>
+    <span class="pill">QR unlocks at the door</span>
+    <span class="pill">Secure payments</span>
+    <span class="pill">Instant seller payouts</span>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-logo">Clubo</span>
+  <div class="footer-links">
+    <a href="/privacy.html">Privacy Policy</a>
+    <a href="/support.html">Support</a>
+    <a href="mailto:hello@cluboapp.org">Contact</a>
+  </div>
+  <p class="footer-copy">© 2026 Clubo. All rights reserved.</p>
+</footer>
+
+<script>
+  // Nav scroll effect
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function() {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  });
+</script>
+</body>
+</html>
