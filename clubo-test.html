@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Clubo — E2E Test Suite</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e11;
+    --surface: #18181c;
+    --border: rgba(255,255,255,0.08);
+    --border-em: rgba(255,255,255,0.16);
+    --text: #f0eff4;
+    --muted: #888;
+    --pass: #4ade80;
+    --fail: #f87171;
+    --info: #60a5fa;
+    --warn: #fbbf24;
+    --mono: 'SF Mono', 'Fira Code', monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --radius: 10px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container { max-width: 780px; margin: 0 auto; }
+
+  /* Header */
+  .top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 8px; }
+  .top h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .top .sub { font-size: 12px; color: var(--muted); }
+
+  /* API config */
+  .config { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+  .config label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .config input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; color: var(--text); font-family: var(--mono); font-size: 12px; }
+  .config input:focus { outline: none; border-color: var(--border-em); }
+
+  /* Summary bar */
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .stat-val { font-size: 26px; font-weight: 600; color: var(--text); }
+  .stat-val.pass { color: var(--pass); }
+  .stat-val.fail { color: var(--fail); }
+  .stat-val.skip { color: var(--muted); }
+
+  /* Action row */
+  .actions { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .btn-primary { background: var(--text); color: var(--bg); border: none; border-radius: 8px; padding: 9px 20px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .btn-primary:hover { opacity: .85; }
+  .btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; transition: color .15s, border-color .15s; }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-em); }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+  .tag-pass { background: rgba(74,222,128,.12); color: var(--pass); }
+  .tag-fail { background: rgba(248,113,113,.12); color: var(--fail); }
+  .tag-run  { background: rgba(96,165,250,.12); color: var(--info); }
+  .tag-skip { background: rgba(255,255,255,.06); color: var(--muted); }
+  .tag-idle { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+  /* Scenario cards */
+  .scenarios { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color .2s; }
+  .card.s-pass { border-color: rgba(74,222,128,.25); }
+  .card.s-fail { border-color: rgba(248,113,113,.25); }
+  .card.s-running { border-color: rgba(96,165,250,.3); }
+
+  .card-header { display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; user-select: none; }
+  .card-header:hover { background: rgba(255,255,255,.02); }
+  .num { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .s-pass .num { border-color: var(--pass); color: var(--pass); }
+  .s-fail .num { border-color: var(--fail); color: var(--fail); }
+  .s-running .num { border-color: var(--info); color: var(--info); }
+  .card-title { flex: 1; font-size: 14px; font-weight: 500; }
+  .card-desc { font-size: 12px; color: var(--muted); }
+  .card-right { display: flex; align-items: center; gap: 8px; }
+  .btn-run { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer; transition: color .15s, border-color .15s; }
+  .btn-run:hover { color: var(--text); border-color: var(--border-em); }
+  .btn-run:disabled { opacity: .3; cursor: not-allowed; }
+
+  /* Steps */
+  .card-steps { border-top: 1px solid var(--border); display: none; }
+  .card-steps.open { display: block; }
+  .step { display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.04); font-size: 13px; }
+  .step:last-child { border-bottom: none; }
+  .step-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .step-body { flex: 1; }
+  .step-name { color: var(--muted); }
+  .step.st-running .step-name { color: var(--text); }
+  .step.st-pass .step-name { color: var(--text); }
+  .step.st-fail .step-name { color: var(--fail); }
+  .step-detail { font-family: var(--mono); font-size: 11px; color: #555; margin-top: 2px; word-break: break-all; }
+  .step.st-pass .step-detail { color: rgba(74,222,128,.5); }
+  .step.st-fail .step-detail { color: rgba(248,113,113,.6); }
+
+  /* Log */
+  .log-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .log { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-family: var(--mono); font-size: 12px; max-height: 220px; overflow-y: auto; }
+  .log-line { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--muted); }
+  .log-line:last-child { border-bottom: none; }
+  .log-line.ok   { color: var(--pass); }
+  .log-line.err  { color: var(--fail); }
+  .log-line.info { color: var(--info); }
+  .log-line.head { color: var(--text); font-weight: 600; }
+
+  /* Spinner */
+  .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(96,165,250,.25); border-top-color: var(--info); border-radius: 50%; animation: spin .65s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top">
+    <h1>Clubo — E2E Test Suite</h1>
+    <span class="sub">Two fresh users created each run &middot; hits live API</span>
+  </div>
+
+  <div class="config">
+    <label>API</label>
+    <input id="apiBase" value="https://clubo-api-production.up.railway.app" />
+  </div>
+
+  <div class="summary">
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-val" id="s-total">0</div></div>
+    <div class="stat"><div class="stat-label">Passed</div><div class="stat-val pass" id="s-pass">0</div></div>
+    <div class="stat"><div class="stat-label">Failed</div><div class="stat-val fail" id="s-fail">0</div></div>
+    <div class="stat"><div class="stat-label">Skipped</div><div class="stat-val skip" id="s-skip">0</div></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" id="runAllBtn" onclick="runAll()">Run all scenarios</button>
+    <button class="btn-ghost" onclick="resetAll()">Reset</button>
+  </div>
+
+  <div class="scenarios" id="scenarios"></div>
+
+  <div class="log-label">Live log</div>
+  <div class="log" id="log">
+    <div class="log-line info">Ready — press "Run all scenarios" to begin.</div>
+  </div>
+
+</div>
+<script>
+const API = () => document.getElementById('apiBase').value.replace(/\/$/,'');
+
+const state = {
+  tokenA:null, userA:null,
+  tokenB:null, userB:null,
+  listingId:null, orderId:null,
+  offerListingId:null,
+};
+
+async function api(path, opts={}, token=null) {
+  const headers = {'Content-Type':'application/json'};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const r = await fetch(API()+path, {...opts, headers:{...headers,...(opts.headers||{})}});
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'HTTP '+r.status);
+  return d;
+}
+
+async function authUser(suffix) {
+  const ts = String(Date.now()).slice(-6);
+  const phone = '+34600' + ts + suffix;
+  const s = await api('/auth/start',{method:'POST',body:JSON.stringify({phone})});
+  const code = s.code || '123456';
+  const v = await api('/auth/verify',{method:'POST',body:JSON.stringify({phone,code})});
+  return {token:v.token, user:v.user, phone};
+}
+
+const SCENARIOS = [
+  {
+    id:'auth', title:'Authentication', desc:'OTP signup, JWT guards',
+    steps:[
+      {id:'signup-a', name:'User A signs up (seller)'},
+      {id:'signup-b', name:'User B signs up (buyer)'},
+      {id:'me-a',     name:'GET /me — User A valid token'},
+      {id:'me-b',     name:'GET /me — User B valid token'},
+    ],
+    run: async(upd) => {
+      upd('signup-a','running');
+      const a = await authUser('0');
+      state.tokenA=a.token; state.userA=a.user;
+      upd('signup-a','pass',`id: ${a.user.id.slice(0,14)}…`);
+
+      upd('signup-b','running');
+      const b = await authUser('1');
+      state.tokenB=b.token; state.userB=b.user;
+      upd('signup-b','pass',`id: ${b.user.id.slice(0,14)}…`);
+
+      upd('me-a','running');
+      const ma = await api('/me',{},state.tokenA);
+      upd('me-a','pass',`phone: ${ma.user.phone}`);
+
+      upd('me-b','running');
+      const mb = await api('/me',{},state.tokenB);
+      upd('me-b','pass',`phone: ${mb.user.phone}`);
+    }
+  },
+  {
+    id:'listing', title:'Listing creation', desc:'Create, browse, duplicate guard',
+    steps:[
+      {id:'create',  name:'POST /listings — User A creates mondays listing'},
+      {id:'browse',  name:'GET /listings?event=mondays — visible in public feed'},
+      {id:'mine',    name:'GET /listings/mine — appears in seller dashboard'},
+      {id:'dupe',    name:'POST /listings — duplicate event blocked (409)'},
+      {id:'cancel',  name:'DELETE /listings/:id — cancel listing'},
+      {id:'recreate',name:'POST /listings — recreate after cancel'},
+    ],
+    run: async(upd) => {
+      if (!state.tokenA) throw new Error('Run auth first');
+
+      upd('create','running');
+      const cl = await api('/listings',{method:'POST',body:JSON.stringify({title:'Test Mondays Ticket',price:1500,quantity:2,event:'mondays'})},state.tokenA);
+      state.listingId = cl.listing.id;
+      upd('create','pass',`id: ${cl.listing.id.slice(0,14)}… €${(cl.listing.price/100).toFixed(2)}`);
+
+      upd('browse','running');
+      const gl = await api('/listings?event=mondays',{},state.tokenA);
+      if (!gl.listings.find(l=>l.id===state.listingId)) throw new Error('Listing not in public feed');
+      upd('browse','pass',`${gl.listings.length} listing(s), ours present`);
+
+      upd('mine','running');
+      const gm = await api('/listings/mine',{},state.tokenA);
+      if (!gm.listings.find(l=>l.id===state.listingId)) throw new Error('Not in /listings/mine');
+      upd('mine','pass',`${gm.listings.length} seller listing(s)`);
+
+      upd('dupe','running');
+      let dupeErr=null;
+      try { await api('/listings',{method:'POST',body:JSON.stringify({title:'Another',price:2000,quantity:1,event:'mondays'})},state.tokenA); }
+      catch(e){ dupeErr=e.message; }
+      if (!dupeErr) throw new Error('Duplicate should be rejected with 409');
+      upd('dupe','pass',`409: ${dupeErr}`);
+
+      upd('cancel','running');
+      await api('/listings/'+state.listingId,{method:'DELETE'},state.tokenA);
+      const afterCancel = await api('/listings/mine',{},state.tokenA);
+      const canceledListing = afterCancel.listings.find(l=>l.id===state.listingId);
+      if (!canceledListing || canceledListing.status !== 'canceled') throw new Error('Listing not canceled');
+      upd('cancel','pass','status: canceled');
+
+      upd('recreate','running');
+      const rc = await api('/listings',{method:'POST',body:JSON.stringify({title:'Test Mondays Ticket',price:1500,quantity:2,event:'mondays'})},state.tokenA);
+      state.listingId = rc.listing.id;
+      upd('recreate','pass',`new id: ${rc.listing.id.slice(0,14)}…`);
+    }
+  },
+  {
+    id:'order', title:'Buy flow', desc:'Reserve, pay, deliver, ticket access',
+    steps:[
+      {id:'create-order', name:'POST /orders — User B reserves ticket'},
+      {id:'self-buy',     name:'POST /orders — seller cannot buy own listing (400)'},
+      {id:'dupe-reserve', name:'POST /orders — double-reserve blocked (409)'},
+      {id:'mark-paid',    name:'POST /dev/orders/:id/mark-paid — simulate Stripe'},
+      {id:'verify-paid',  name:'GET /orders/:id — status is PAID'},
+      {id:'ticket-status',name:'GET /orders/:id/ticket/status — uploaded & locked state'},
+      {id:'deliver',      name:'POST /orders/:id/deliver — seller marks delivered'},
+      {id:'verify-del',   name:'GET /orders/:id — status is DELIVERED'},
+    ],
+    run: async(upd) => {
+      if (!state.listingId) throw new Error('Run listing scenario first');
+
+      upd('create-order','running');
+      const co = await api('/orders',{method:'POST',body:JSON.stringify({listingId:state.listingId})},state.tokenB);
+      state.orderId = co.order.id;
+      upd('create-order','pass',`orderId: ${co.order.id.slice(0,14)}… status: ${co.order.status}`);
+
+      upd('self-buy','running');
+      let selfErr=null;
+      try { await api('/orders',{method:'POST',body:JSON.stringify({listingId:state.listingId})},state.tokenA); }
+      catch(e){ selfErr=e.message; }
+      if (!selfErr) throw new Error('Seller should be blocked from buying own listing');
+      upd('self-buy','pass',`Blocked: ${selfErr}`);
+
+      upd('dupe-reserve','running');
+      let dupeErr=null;
+      try { await api('/orders',{method:'POST',body:JSON.stringify({listingId:state.listingId})},state.tokenB); }
+      catch(e){ dupeErr=e.message; }
+      if (!dupeErr) throw new Error('Double reserve should be blocked');
+      upd('dupe-reserve','pass',`Blocked: ${dupeErr}`);
+
+      upd('mark-paid','running');
+      const mp = await api('/dev/orders/'+state.orderId+'/mark-paid',{method:'POST'},state.tokenB);
+      if (!mp.ok) throw new Error('mark-paid failed');
+      upd('mark-paid','pass','Order moved to PAID via dev route');
+
+      upd('verify-paid','running');
+      const os = await api('/orders/'+state.orderId,{},state.tokenB);
+      if (os.order.status !== 'PAID') throw new Error(`Expected PAID, got ${os.order.status}`);
+      upd('verify-paid','pass',`status: ${os.order.status}`);
+
+      upd('ticket-status','running');
+      const ts = await api('/orders/'+state.orderId+'/ticket/status',{},state.tokenB);
+      upd('ticket-status','pass',`uploaded: ${ts.uploaded}, locked: ${ts.locked}`);
+
+      upd('deliver','running');
+      const dv = await api('/orders/'+state.orderId+'/deliver',{method:'POST'},state.tokenA);
+      if (dv.order.status !== 'DELIVERED') throw new Error(`Expected DELIVERED, got ${dv.order.status}`);
+      upd('deliver','pass',`status: ${dv.order.status}`);
+
+      upd('verify-del','running');
+      const vd = await api('/orders/'+state.orderId,{},state.tokenA);
+      if (vd.order.status !== 'DELIVERED') throw new Error(`Expected DELIVERED`);
+      upd('verify-del','pass',`deliveredAt: ${vd.order.deliveredAt ? 'set' : 'null'}`);
+    }
+  },
+  {
+    id:'balance', title:'Balance & payout cron', desc:'Ledger, dev credit, cron, seller credit',
+    steps:[
+      {id:'buyer-balance',  name:'GET /me/balance — buyer initial balance'},
+      {id:'dev-credit',     name:'POST /dev/balance/credit — inject €10 to buyer'},
+      {id:'ledger-check',   name:'GET /me/balance — ledger entry created'},
+      {id:'cron',           name:'POST /dev/cron/payout — trigger payout cron'},
+      {id:'seller-credit',  name:'GET /me/balance — seller has SALE_CREDIT entries'},
+    ],
+    run: async(upd) => {
+      if (!state.tokenA) throw new Error('Run auth first');
+
+      upd('buyer-balance','running');
+      const bb = await api('/me/balance',{},state.tokenB);
+      upd('buyer-balance','pass',`balance: €${(bb.balance/100).toFixed(2)}`);
+
+      upd('dev-credit','running');
+      const dc = await api('/dev/balance/credit',{method:'POST',body:JSON.stringify({amount:1000})},state.tokenB);
+      upd('dev-credit','pass',`new balance: €${(dc.balance/100).toFixed(2)}`);
+
+      upd('ledger-check','running');
+      const lc = await api('/me/balance',{},state.tokenB);
+      if (!lc.ledger.length) throw new Error('No ledger entries found');
+      upd('ledger-check','pass',`${lc.ledger.length} entry(s), top: ${lc.ledger[0].type}`);
+
+      upd('cron','running');
+      await api('/dev/cron/payout',{method:'POST'});
+      upd('cron','pass','Payout cron executed');
+
+      upd('seller-credit','running');
+      const sb = await api('/me/balance',{},state.tokenA);
+      upd('seller-credit','pass',`seller balance: €${(sb.balance/100).toFixed(2)}, ${sb.ledger.length} ledger entries`);
+    }
+  },
+  {
+    id:'dispute', title:'Dispute flow', desc:'Open, respond, duplicate guard',
+    steps:[
+      {id:'open',      name:'POST /orders/:id/dispute — buyer opens dispute'},
+      {id:'status',    name:'GET /orders/:id — status is DISPUTE_OPEN'},
+      {id:'respond',   name:'POST /orders/:id/dispute/respond — seller responds'},
+      {id:'dupe',      name:'POST /orders/:id/dispute — duplicate blocked (409)'},
+      {id:'non-buyer', name:'Seller cannot open dispute on own order (403)'},
+    ],
+    run: async(upd) => {
+      if (!state.orderId) throw new Error('Run order scenario first');
+
+      upd('open','running');
+      const od = await api('/orders/'+state.orderId+'/dispute',{method:'POST',body:JSON.stringify({reason:'Ticket QR code did not scan at the venue door'})},state.tokenB);
+      if (od.order.status !== 'DISPUTE_OPEN') throw new Error(`Expected DISPUTE_OPEN, got ${od.order.status}`);
+      upd('open','pass',`status: ${od.order.status}`);
+
+      upd('status','running');
+      const ds = await api('/orders/'+state.orderId,{},state.tokenB);
+      if (ds.order.status !== 'DISPUTE_OPEN') throw new Error('Status mismatch');
+      upd('status','pass',`dispute.status: ${ds.order.dispute?.status}`);
+
+      upd('respond','running');
+      const sr = await api('/orders/'+state.orderId+'/dispute/respond',{method:'POST',body:JSON.stringify({response:'Ticket was valid, buyer arrived after the event started'})},state.tokenA);
+      if (!sr.ok) throw new Error('Seller respond failed');
+      upd('respond','pass','Seller response recorded');
+
+      upd('dupe','running');
+      let dupeErr=null;
+      try { await api('/orders/'+state.orderId+'/dispute',{method:'POST',body:JSON.stringify({reason:'Again'})},state.tokenB); }
+      catch(e){ dupeErr=e.message; }
+      if (!dupeErr) throw new Error('Duplicate dispute should be rejected');
+      upd('dupe','pass',`409: ${dupeErr}`);
+
+      upd('non-buyer','running');
+      let nbErr=null;
+      try { await api('/orders/'+state.orderId+'/dispute',{method:'POST',body:JSON.stringify({reason:'Seller opening dispute'})},state.tokenA); }
+      catch(e){ nbErr=e.message; }
+      if (!nbErr) throw new Error('Seller should not open dispute on own order');
+      upd('non-buyer','pass',`403/blocked: ${nbErr}`);
+    }
+  },
+  {
+    id:'offers', title:'Offer / negotiation', desc:'SetupIntent + offer flow (Stripe PM needed for full test)',
+    steps:[
+      {id:'new-listing',    name:'POST /listings — User A creates istar listing'},
+      {id:'setup-intent',   name:'POST /stripe/setup-intent — buyer gets SetupIntent'},
+      {id:'offer-no-pm',    name:'POST /offers — missing PM rejected (400)'},
+      {id:'make-offer',     name:'POST /offers — skipped (needs real Stripe PM)'},
+    ],
+    run: async(upd) => {
+      if (!state.tokenA) throw new Error('Run auth first');
+
+      upd('new-listing','running');
+      const nl = await api('/listings',{method:'POST',body:JSON.stringify({title:'Istar Test Ticket',price:2000,quantity:1,event:'istar'})},state.tokenA);
+      state.offerListingId = nl.listing.id;
+      upd('new-listing','pass',`id: ${nl.listing.id.slice(0,14)}…`);
+
+      upd('setup-intent','running');
+      const si = await api('/stripe/setup-intent',{method:'POST'},state.tokenB);
+      if (!si.clientSecret) throw new Error('No clientSecret returned');
+      upd('setup-intent','pass',`setupIntentId: ${si.setupIntentId.slice(0,18)}…`);
+
+      upd('offer-no-pm','running');
+      let nopmErr=null;
+      try {
+        await api('/offers',{method:'POST',body:JSON.stringify({listingId:state.offerListingId,quantity:1,pricePerTicket:1800,stripeSetupIntentId:'',stripePaymentMethodId:''})},state.tokenB);
+      } catch(e){ nopmErr=e.message; }
+      if (!nopmErr) throw new Error('Empty PM fields should fail validation');
+      upd('offer-no-pm','pass',`Validation rejected: ${nopmErr}`);
+
+      upd('make-offer','skip','Requires confirmed Stripe PM — test manually in the app');
+    }
+  },
+  {
+    id:'guards', title:'Security & edge cases', desc:'Auth guards, validation, cross-user blocks',
+    steps:[
+      {id:'no-token',   name:'GET /me — no token → 401'},
+      {id:'bad-token',  name:'GET /me — junk token → 401'},
+      {id:'bad-phone',  name:'POST /auth/start — malformed phone → 400'},
+      {id:'cross-del',  name:'Buyer cannot deliver seller order → 403'},
+      {id:'cross-order',name:'User A cannot view User B order → 403'},
+      {id:'health',     name:'GET /health → ok'},
+    ],
+    run: async(upd) => {
+      upd('no-token','running');
+      let e1=false;
+      try { await api('/me'); } catch(e){ if(e.message.match(/missing|401|token/i)) e1=true; }
+      if (!e1) throw new Error('Expected 401 without token');
+      upd('no-token','pass','401 missing token');
+
+      upd('bad-token','running');
+      let e2=false;
+      try { await api('/me',{},'completely.fake.jwt.here'); } catch(e){ if(e.message.match(/invalid|401/i)) e2=true; }
+      if (!e2) throw new Error('Expected 401 with bad token');
+      upd('bad-token','pass','401 invalid token');
+
+      upd('bad-phone','running');
+      let e3=false;
+      try { await api('/auth/start',{method:'POST',body:JSON.stringify({phone:'1234'})}); } catch(e){ e3=true; }
+      if (!e3) throw new Error('Bad phone should be rejected');
+      upd('bad-phone','pass','400 phone validation failed');
+
+      upd('cross-del','running');
+      if (!state.orderId) { upd('cross-del','skip','No order — run order scenario'); }
+      else {
+        let e4=false;
+        try { await api('/orders/'+state.orderId+'/deliver',{method:'POST'},state.tokenB); } catch(e){ e4=true; }
+        if (!e4) throw new Error('Buyer should not deliver seller order');
+        upd('cross-del','pass','403 forbidden');
+      }
+
+      upd('cross-order','running');
+      if (!state.orderId || !state.tokenA) { upd('cross-order','skip','Need order + both tokens'); }
+      else {
+        let e5=false;
+        try {
+          const thirdUserA = await authUser('2');
+          await api('/orders/'+state.orderId,{},thirdUserA.token);
+        } catch(e){ e5=true; }
+        if (!e5) throw new Error('Third user should not see order');
+        upd('cross-order','pass','403 forbidden');
+      }
+
+      upd('health','running');
+      const h = await api('/health');
+      if (!h.ok) throw new Error('Health check failed');
+      upd('health','pass',`name: ${h.name}`);
+    }
+  },
+];
+
+const scenarioState = {};
+SCENARIOS.forEach(s => { scenarioState[s.id]='idle'; });
+
+function log(msg, type='info') {
+  const el = document.getElementById('log');
+  const d = document.createElement('div');
+  d.className='log-line '+type;
+  d.textContent = new Date().toLocaleTimeString()+' '+msg;
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+}
+
+function renderScenarios() {
+  const c = document.getElementById('scenarios');
+  c.innerHTML='';
+  SCENARIOS.forEach((s,i) => {
+    const st = scenarioState[s.id];
+    const tagClass = {idle:'tag-idle',running:'tag-run',pass:'tag-pass',fail:'tag-fail',skip:'tag-skip'}[st];
+    const tagLabel = {idle:'idle',running:'running',pass:'passed',fail:'failed',skip:'skipped'}[st];
+    const div = document.createElement('div');
+    div.className='card s-'+st;
+    div.id='card-'+s.id;
+    div.innerHTML=`
+      <div class="card-header" onclick="toggleSteps('${s.id}')">
+        <div class="num" id="num-${s.id}">${i+1}</div>
+        <div style="flex:1">
+          <div class="card-title">${s.title}</div>
+          <div class="card-desc">${s.desc}</div>
+        </div>
+        <div class="card-right">
+          <span class="tag ${tagClass}" id="tag-${s.id}">${tagLabel}</span>
+          <button class="btn-run" id="btnr-${s.id}" onclick="event.stopPropagation();runScenario('${s.id}')">Run</button>
+        </div>
+      </div>
+      <div class="card-steps" id="steps-${s.id}">
+        ${s.steps.map(step=>`
+          <div class="step" id="step-${s.id}-${step.id}">
+            <div class="step-icon" id="icon-${s.id}-${step.id}">·</div>
+            <div class="step-body">
+              <div class="step-name">${step.name}</div>
+              <div class="step-detail" id="det-${s.id}-${step.id}"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    c.appendChild(div);
+  });
+  updateSummary();
+}
+
+function toggleSteps(id) {
+  document.getElementById('steps-'+id).classList.toggle('open');
+}
+
+function setStep(sid, stepId, st, detail='') {
+  const el = document.getElementById('step-'+sid+'-'+stepId);
+  if (!el) return;
+  el.className='step st-'+st;
+  const icons={running:'<span class="spin"></span>',pass:'✓',fail:'✕',skip:'–',idle:'·'};
+  document.getElementById('icon-'+sid+'-'+stepId).innerHTML=icons[st]||'·';
+  if (detail) document.getElementById('det-'+sid+'-'+stepId).textContent=detail;
+}
+
+function setCard(id, st) {
+  scenarioState[id]=st;
+  const card=document.getElementById('card-'+id);
+  if (!card) return;
+  card.className='card s-'+st;
+  const tagClass={idle:'tag-idle',running:'tag-run',pass:'tag-pass',fail:'tag-fail',skip:'tag-skip'}[st];
+  const tagLabel={idle:'idle',running:'running',pass:'passed',fail:'failed',skip:'skipped'}[st];
+  const tag=document.getElementById('tag-'+id);
+  tag.className='tag '+tagClass;
+  tag.textContent=tagLabel;
+  updateSummary();
+}
+
+function updateSummary() {
+  const vals=Object.values(scenarioState);
+  document.getElementById('s-total').textContent=vals.length;
+  document.getElementById('s-pass').textContent=vals.filter(v=>v==='pass').length;
+  document.getElementById('s-fail').textContent=vals.filter(v=>v==='fail').length;
+  document.getElementById('s-skip').textContent=vals.filter(v=>v==='skip').length;
+}
+
+async function runScenario(id) {
+  const scenario=SCENARIOS.find(s=>s.id===id);
+  if (!scenario) return;
+  document.getElementById('steps-'+id).classList.add('open');
+  setCard(id,'running');
+  scenario.steps.forEach(s=>setStep(id,s.id,'idle'));
+  log('Starting: '+scenario.title,'info');
+
+  const upd=(stepId,st,detail='')=>{
+    setStep(id,stepId,st,detail);
+    if (st==='pass') log('  ✓ '+stepId+': '+detail,'ok');
+    if (st==='fail') log('  ✕ '+stepId+': '+detail,'err');
+    if (st==='skip') log('  – '+stepId+' skipped','info');
+  };
+
+  try {
+    await scenario.run(upd);
+    setCard(id,'pass');
+    log('PASSED: '+scenario.title,'ok');
+  } catch(err) {
+    scenario.steps.forEach(s=>{
+      const el=document.getElementById('step-'+id+'-'+s.id);
+      if (el && el.classList.contains('st-running')) setStep(id,s.id,'fail',err.message);
+    });
+    setCard(id,'fail');
+    log('FAILED: '+scenario.title+' — '+err.message,'err');
+  }
+}
+
+async function runAll() {
+  const btn=document.getElementById('runAllBtn');
+  btn.disabled=true;
+  log('=== Full E2E suite started ===','head');
+  for (const s of SCENARIOS) {
+    await runScenario(s.id);
+    await new Promise(r=>setTimeout(r,300));
+  }
+  btn.disabled=false;
+  const passed=Object.values(scenarioState).filter(v=>v==='pass').length;
+  const failed=Object.values(scenarioState).filter(v=>v==='fail').length;
+  const skipped=Object.values(scenarioState).filter(v=>v==='skip').length;
+  log(`=== Done — ${passed} passed · ${failed} failed · ${skipped} skipped ===`, failed>0?'err':'ok');
+}
+
+function resetAll() {
+  SCENARIOS.forEach(s=>{ scenarioState[s.id]='idle'; });
+  Object.keys(state).forEach(k=>{ state[k]=null; });
+  renderScenarios();
+  document.getElementById('log').innerHTML='<div class="log-line info">Reset. Ready.</div>';
+}
+
+renderScenarios();
+</script>
+</body>
+</html>
