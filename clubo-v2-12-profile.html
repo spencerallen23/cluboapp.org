@@ -250,9 +250,9 @@ window.addEventListener('DOMContentLoaded', async function(){
     document.getElementById('statTrades').textContent   = '—';
     document.getElementById('statDisputes').textContent = '—';
     document.getElementById('statTrust').textContent    = stats.cluboBalance != null ? ('€' + (stats.cluboBalance / 100).toFixed(0)) : '—';
-    // Update trust label to Balance
-    var trustLbl = document.querySelector('#statTrust + .stat-lbl') || document.querySelectorAll('.stat-lbl')[2];
-    if (trustLbl) trustLbl.textContent = 'Balance';
+    // Relabel the third stat to Balance
+    var statLabels = document.querySelectorAll('.stat-lbl');
+    if (statLabels[2]) statLabels[2].textContent = 'Balance';
   } catch(e) {
     document.getElementById('profileName').textContent = 'Profile';
     document.getElementById('statTrades').textContent   = '—';

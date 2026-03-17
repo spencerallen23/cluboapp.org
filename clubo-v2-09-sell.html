@@ -6,47 +6,40 @@
 <title>Clubo — 09 Sell Ticket</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="common.css">
-
 <style>
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
 .screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
 .title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:22px;}
 .label{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:6px;}
 .input-wrap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:relative;}
-.input-text{font-size:13px;font-weight:400;color:rgba(255,255,255,.7);}
 .chev{opacity:.35;}
 .price-wrap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 14px;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .currency{font-size:18px;font-weight:600;color:rgba(255,255,255,.35);}
 .price-input{border:none;background:transparent;outline:none;color:#fff;font-family:'Fraunces',serif;font-size:34px;font-weight:700;width:100%;}
 .hint{font-size:11px;font-weight:300;color:rgba(255,255,255,.28);margin-bottom:16px;}
 .tag{display:inline-flex;align-items:center;justify-content:center;height:18px;padding:0 8px;border-radius:999px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:rgba(239,68,68,.8);margin-left:8px;}
-.upload-card{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.22);border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
-.up-left{display:flex;flex-direction:column;gap:3px;}
-.up-top{display:flex;align-items:center;gap:8px;color:#4ADE80;font-weight:600;}
-.up-sub{font-size:10px;font-weight:300;color:rgba(255,255,255,.25);}
-.thumb{width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);font-size:10px;margin-bottom:10px;}
-.checkbox{display:flex;align-items:flex-start;gap:10px;margin-top:4px;}
-.box{width:18px;height:18px;border-radius:6px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);display:flex;align-items:center;justify-content:center;color:#4ADE80;flex-shrink:0;margin-top:2px;}
-.cb-text{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);line-height:1.55;}
-.cta-area{margin-top:auto; padding-bottom:14px;}
-.cta-btn{width:100%;height:52px;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#08080F;display:flex;align-items:center;justify-content:center;text-decoration:none;}
 
-/* extra link */
+/* Upload area */
+.upload-area{border:1.5px dashed rgba(255,255,255,.15);border-radius:14px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;cursor:pointer;transition:border-color .2s,background .2s;min-height:80px;}
+.upload-area:hover,.upload-area.drag{border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.04);}
+.upload-area.has-file{border-style:solid;border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.05);}
+.upload-icon{color:rgba(255,255,255,.3);}
+.upload-area.has-file .upload-icon{color:#4ADE80;}
+.upload-label{font-size:13px;font-weight:400;color:rgba(255,255,255,.45);}
+.upload-area.has-file .upload-label{color:#4ADE80;font-weight:500;}
+.upload-sub{font-size:11px;font-weight:300;color:rgba(255,255,255,.2);}
+.thumb-preview{width:100%;border-radius:10px;max-height:120px;object-fit:cover;margin-top:4px;display:none;}
+
+.cta-area{margin-top:auto;padding-bottom:14px;}
+.cta-btn{width:100%;height:52px;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#08080F;display:flex;align-items:center;justify-content:center;text-decoration:none;border:none;cursor:pointer;}
+.cta-btn:disabled{opacity:.4;cursor:not-allowed;}
 .secondary-link{margin-top:10px;display:inline-flex;align-items:center;justify-content:center;height:36px;width:100%;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:500;color:rgba(255,255,255,.45);text-decoration:none;}
-
-
-/* Nav */
 </style>
 </head>
-
 <body>
 <div class="page-label">Clubo · 09 — Sell Ticket</div>
-
 <div class="phone">
-    <div class="top-bar">
-      <div class="top-title">Clubo</div>
-    </div>
+  <div class="top-bar"><div class="top-title">Clubo</div></div>
   <div class="screen">
     <div class="title">Sell Ticket</div>
 
@@ -60,37 +53,32 @@
       <svg class="chev" style="position:absolute;right:14px;pointer-events:none;" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 6l3 3 3-3" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
 
+    <div id="otherEventWrap" style="display:none;">
+      <div class="label">Event Name</div>
+      <div class="input-wrap">
+        <input id="otherEventLabel" style="background:transparent;border:none;outline:none;color:rgba(255,255,255,.7);font-family:'DM Sans',sans-serif;font-size:13px;width:100%;" placeholder="e.g. Fabrik Saturday" />
+      </div>
+    </div>
+
     <div class="label">Your Price</div>
     <div class="price-wrap">
       <div class="currency">€</div>
-      <input class="price-input" value="14" inputmode="numeric" />
+      <input class="price-input" id="priceInput" value="14" inputmode="numeric" />
     </div>
     <div class="hint">Set any price — buyers can make offers below your list price.</div>
 
     <div class="label">Ticket Screenshot <span class="tag">Mandatory</span></div>
-    <div class="upload-card">
-      <div class="up-left">
-        <div class="up-top">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 11V3" stroke="#4ADE80" stroke-width="1.5" stroke-linecap="round"/><path d="M5 6l3-3 3 3" stroke="#4ADE80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13h10" stroke="#4ADE80" stroke-width="1.5" stroke-linecap="round"/></svg>
-          1 screenshot uploaded
-        </div>
-        <div class="up-sub">Tap to replace or add more</div>
-      </div>
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9l2.5 2.5L13 6" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="9" r="7.2" stroke="rgba(74,222,128,.35)" stroke-width="1.2"/></svg>
-    </div>
-
-    <div class="thumb">Ticket 1</div>
-
-    <div class="checkbox">
-      <div class="box">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.2 6.2l2.2 2.2L9.8 3" stroke="#4ADE80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-      <div class="cb-text">I confirm this ticket has not been sold elsewhere.</div>
+    <input type="file" id="ticketFileInput" accept="image/*" style="display:none;" />
+    <div class="upload-area" id="uploadArea">
+      <svg class="upload-icon" width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 15V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 9l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="upload-label" id="uploadLabel">Tap to upload screenshot</div>
+      <div class="upload-sub" id="uploadSub">JPG, PNG or WEBP · Max 10MB</div>
+      <img id="thumbPreview" class="thumb-preview" alt="Ticket preview" />
     </div>
 
     <div class="cta-area">
       <a class="secondary-link" href="clubo-v2-10-bulk.html">Bulk list (3 tickets)</a>
-      <div id="sell-error" style="display:none;color:rgba(239,68,68,.85);font-size:12px;font-weight:400;text-align:center;margin-bottom:8px;"></div>
+      <div id="sell-error" style="display:none;color:rgba(239,68,68,.85);font-size:12px;font-weight:400;text-align:center;margin-bottom:8px;margin-top:8px;"></div>
       <button id="listBtn" class="cta-btn" type="button">List Ticket</button>
     </div>
   </div>
@@ -118,37 +106,115 @@
 <script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
 <script src="transition.js" defer></script>
 <script>
-document.getElementById('listBtn').addEventListener('click', async function(){
-  var btn     = document.getElementById('listBtn');
-  var errEl   = document.getElementById('sell-error');
-  errEl.style.display = 'none';
+var selectedFile = null;
 
-  var eventSelect = document.getElementById('eventSelect');
-  var priceInput  = document.querySelector('.price-input');
-  var event       = eventSelect ? eventSelect.value : 'other';
-  var eventTitle  = eventSelect ? eventSelect.options[eventSelect.selectedIndex].text : 'Ticket';
-  var eurosRaw    = priceInput ? parseFloat(priceInput.value) : NaN;
+// Show/hide other event label input
+document.getElementById('eventSelect').addEventListener('change', function() {
+  document.getElementById('otherEventWrap').style.display = this.value === 'other' ? 'block' : 'none';
+});
 
-  if (isNaN(eurosRaw) || eurosRaw <= 0) {
-    errEl.textContent = 'Please enter a valid price.';
-    errEl.style.display = 'block';
+// Upload area click → trigger file input
+var uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('click', function() {
+  document.getElementById('ticketFileInput').click();
+});
+
+// Drag and drop
+uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.classList.add('drag'); });
+uploadArea.addEventListener('dragleave', function() { uploadArea.classList.remove('drag'); });
+uploadArea.addEventListener('drop', function(e) {
+  e.preventDefault();
+  uploadArea.classList.remove('drag');
+  var f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+
+document.getElementById('ticketFileInput').addEventListener('change', function(e) {
+  var f = e.target.files && e.target.files[0];
+  if (f) handleFile(f);
+});
+
+function handleFile(f) {
+  if (!f.type.startsWith('image/')) {
+    showError('Please upload an image file.');
     return;
   }
+  if (f.size > 10 * 1024 * 1024) {
+    showError('File too large — max 10MB.');
+    return;
+  }
+  selectedFile = f;
+  uploadArea.classList.add('has-file');
+  document.getElementById('uploadLabel').textContent = f.name;
+  document.getElementById('uploadSub').textContent = 'Tap to replace';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var thumb = document.getElementById('thumbPreview');
+    thumb.src = e.target.result;
+    thumb.style.display = 'block';
+  };
+  reader.readAsDataURL(f);
+}
+
+function showError(msg) {
+  var errEl = document.getElementById('sell-error');
+  errEl.textContent = msg;
+  errEl.style.display = 'block';
+}
+
+document.getElementById('listBtn').addEventListener('click', async function() {
+  var btn        = document.getElementById('listBtn');
+  var errEl      = document.getElementById('sell-error');
+  errEl.style.display = 'none';
+
+  var eventSelect  = document.getElementById('eventSelect');
+  var event        = eventSelect.value;
+  var eventTitle   = eventSelect.options[eventSelect.selectedIndex].text;
+  var eventLabel   = event === 'other' ? (document.getElementById('otherEventLabel').value.trim()) : null;
+  var eurosRaw     = parseFloat(document.getElementById('priceInput').value);
+
+  if (isNaN(eurosRaw) || eurosRaw <= 0) { showError('Please enter a valid price.'); return; }
+  if (event === 'other' && !eventLabel)  { showError('Please enter the event name.'); return; }
+  if (!selectedFile) { showError('Please upload your ticket screenshot.'); return; }
 
   var priceCents = Math.round(eurosRaw * 100);
-
   btn.disabled = true;
-  btn.textContent = 'Listing…';
+  btn.textContent = 'Creating listing…';
 
   try {
-    await ClubAuth.createListing(eventTitle, priceCents, event, eventTitle, 1);
-    var dest = event === 'istar'
-      ? 'clubo-v2-05-listings-istar.html'
-      : 'clubo-v2-05-listings-mondays.html';
+    // 1. Create listing
+    var listing = await ClubAuth.createListing(event === 'other' ? eventLabel : eventTitle, priceCents, event, eventLabel, 1);
+
+    // 2. Get S3 upload URL
+    btn.textContent = 'Uploading ticket…';
+    var uploadData = await ClubAuth.getTicketUploadUrl(listing.id, selectedFile.type);
+
+    // 3. Upload file to S3
+    await ClubAuth.uploadFileToS3(uploadData.uploadUrl, selectedFile);
+
+    // 4. Attach ticket URL + trigger AI scan
+    btn.textContent = 'Scanning ticket…';
+    var result = await ClubAuth.attachTicketUrl(listing.id, uploadData.publicUrl);
+
+    if (!result.ok) {
+      // AI scan rejected
+      var flags = (result.scan && result.scan.flags && result.scan.flags.length) ? result.scan.flags.join(', ') : 'Ticket could not be verified';
+      showError('Ticket rejected: ' + flags + '. Please upload a clearer screenshot.');
+      btn.disabled = false;
+      btn.textContent = 'List Ticket';
+      return;
+    }
+
+    if (result.scan && result.scan.result === 'FLAG') {
+      // Flagged but accepted — warn and continue
+      btn.textContent = 'Listed (flagged for review)';
+    }
+
+    localStorage.setItem('clubo_new_listing_id', listing.id);
+    var dest = event === 'istar' ? 'clubo-v2-05-listings-istar.html' : 'clubo-v2-05-listings-mondays.html';
     window.cluboNavigate(dest);
   } catch(err) {
-    errEl.textContent = err.message || 'Could not create listing. Try again.';
-    errEl.style.display = 'block';
+    showError(err.message || 'Could not create listing. Try again.');
     btn.disabled = false;
     btn.textContent = 'List Ticket';
   }

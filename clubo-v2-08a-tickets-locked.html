@@ -179,7 +179,7 @@ function buildCard(order) {
   footer.appendChild(price);
   card.appendChild(footer);
 
-  // Action buttons for unpaid orders
+  // Cancel button for unpaid orders only
   if (order.status === 'CREATED' || order.status === 'PAYMENT_PENDING') {
     var cancelBtn = document.createElement('button');
     cancelBtn.className = 'action-btn btn-cancel';
@@ -188,7 +188,21 @@ function buildCard(order) {
       ClubAuth.cancelOrder(order.id).then(loadOrders).catch(function(err) { alert(err.message); });
     });
     card.appendChild(cancelBtn);
+  }
 
+  // Resell button for paid/delivered tickets (no refunds — resell only)
+  if (['PAID','DELIVERED','COMPLETED'].includes(order.status)) {
+    var resellBtn = document.createElement('button');
+    resellBtn.className = 'action-btn';
+    resellBtn.style.cssText = 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)!important;color:rgba(255,255,255,.6);margin-top:8px;width:100%;height:36px;border-radius:10px;font-size:11px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;';
+    resellBtn.textContent = 'Resell this ticket';
+    resellBtn.addEventListener('click', function() {
+      // Pre-fill the sell screen with this event
+      localStorage.setItem('clubo_resell_event', l.event);
+      localStorage.setItem('clubo_resell_event_label', l.eventLabel || '');
+      window.location.href = 'clubo-v2-09-sell.html';
+    });
+    card.appendChild(resellBtn);
   }
 
   return card;

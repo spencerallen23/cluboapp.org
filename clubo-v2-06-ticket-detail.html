@@ -197,7 +197,7 @@ document.getElementById('buyBtn').addEventListener('click', async function(){
     var order = await ClubAuth.createOrder(listingId);
     localStorage.setItem('clubo_pending_order', order.id);
     localStorage.removeItem('clubo_viewing_listing');
-    window.cluboNavigate('clubo-v2-07a-processing-securing.html');
+    window.cluboNavigate('payment_screen.html');
   } catch(err) {
     errEl.textContent = err.message || 'Could not complete purchase. Try again.';
     errEl.style.display = 'block';
