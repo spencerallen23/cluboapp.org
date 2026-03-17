@@ -247,9 +247,12 @@ window.addEventListener('DOMContentLoaded', async function(){
 
     var displayName = [stats.firstName, stats.lastName].filter(Boolean).join(' ') || (stats.phone ? stats.phone.slice(-4) : 'You');
     document.getElementById('profileName').textContent = displayName;
-    document.getElementById('statTrades').textContent   = stats.trades;
-    document.getElementById('statDisputes').textContent = stats.disputes;
-    document.getElementById('statTrust').textContent    = stats.trust;
+    document.getElementById('statTrades').textContent   = '—';
+    document.getElementById('statDisputes').textContent = '—';
+    document.getElementById('statTrust').textContent    = stats.cluboBalance != null ? ('€' + (stats.cluboBalance / 100).toFixed(0)) : '—';
+    // Update trust label to Balance
+    var trustLbl = document.querySelector('#statTrust + .stat-lbl') || document.querySelectorAll('.stat-lbl')[2];
+    if (trustLbl) trustLbl.textContent = 'Balance';
   } catch(e) {
     document.getElementById('profileName').textContent = 'Profile';
     document.getElementById('statTrades').textContent   = '—';

@@ -76,7 +76,7 @@
 
   async function getMyStats() {
     var data = await apiFetch('/me/stats');
-    return data.stats;
+    return data;
   }
 
   // ── Listings API ──────────────────────────────────────────────────────────

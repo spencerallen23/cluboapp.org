@@ -195,7 +195,6 @@ document.getElementById('buyBtn').addEventListener('click', async function(){
 
   try {
     var order = await ClubAuth.createOrder(listingId);
-    // Store order ID for the tickets tab + processing page
     localStorage.setItem('clubo_pending_order', order.id);
     localStorage.removeItem('clubo_viewing_listing');
     window.cluboNavigate('clubo-v2-07a-processing-securing.html');
@@ -204,12 +203,11 @@ document.getElementById('buyBtn').addEventListener('click', async function(){
     errEl.style.display = 'block';
     btn.disabled = false;
     btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="5" width="10" height="7" rx="1.5" stroke="#08080F" stroke-width="1.3"/><path d="M4.5 5V4a2.5 2.5 0 015 0v1" stroke="#08080F" stroke-width="1.3" stroke-linecap="round"/></svg> Buy Now';
-
-  document.getElementById('offerBtn').addEventListener('click', function() {
-    // listing already in localStorage from this page load
-    window.location.href = 'clubo-v2-17-offer.html';
-  });
   }
+});
+
+document.getElementById('offerBtn').addEventListener('click', function() {
+  window.location.href = 'clubo-v2-17-offer.html';
 });
 </script>
 </body>
