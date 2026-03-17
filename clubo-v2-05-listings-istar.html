@@ -33,12 +33,13 @@
 .sort-btn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:5px 9px;}
 .sort-btn span{font-size:10px;font-weight:500;color:rgba(255,255,255,.5);letter-spacing:.04em;}
 
-/* Scrollable list — top set by JS */
+/* Scrollable list — top set by JS, bottom fixed above nav */
 .tickets-scroll{
-  position:absolute;left:0;right:0;bottom:0;
+  position:absolute;left:0;right:0;
+  bottom:calc(60px + env(safe-area-inset-bottom));
   overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
   display:flex;flex-direction:column;gap:9px;
-  padding:12px 22px calc(86px + env(safe-area-inset-bottom));
+  padding:12px 22px 12px;
 }
 .tickets-scroll::-webkit-scrollbar{display:none;}
 
@@ -117,12 +118,8 @@
 window.addEventListener('DOMContentLoaded', function(){
   function adjust(){
     var h = document.getElementById('listingsHeader').offsetHeight;
-    var nav = document.querySelector('.bottom-nav');
-    var navH = nav ? nav.offsetHeight : 80;
     var s = document.getElementById('ticketsScroll');
     s.style.top = h + 'px';
-    s.style.bottom = navH + 'px';
-    s.style.paddingBottom = '12px';
   }
   adjust();
   window.addEventListener('resize', adjust);

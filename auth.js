@@ -344,6 +344,8 @@
     deleteListing:   async function(id) { return apiFetch('/listings/' + id, { method: 'DELETE' }); },
     updateProfile:   updateProfile,
     uploadAvatar:    uploadAvatar,
+    apiFetch:        apiFetch,
+    getMe:           async function() { return apiFetch('/me'); },
 
     // Ambassador
     applyAmbassador:     applyAmbassador,
