@@ -85,11 +85,11 @@ async function verify(){
 
   try {
     // Try real API first
-    var firstName = localStorage.getItem('clubo_first') || '';
-    var lastName  = localStorage.getItem('clubo_last')  || '';
+    var firstName = localStorage.getItem('clubo_signup_first') || '';
+    var lastName  = localStorage.getItem('clubo_signup_last')  || '';
     await ClubAuth.verifyAuth(phone, otp, firstName, lastName);
-    localStorage.removeItem('clubo_first');
-    localStorage.removeItem('clubo_last');
+    localStorage.removeItem('clubo_signup_first');
+    localStorage.removeItem('clubo_signup_last');
     window.cluboNavigate('clubo-v2-04-home.html');
   } catch(apiErr) {
     showError();
