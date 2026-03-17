@@ -156,10 +156,13 @@ function buildCard(order) {
     overlay.className = 'lock-overlay';
     var icon = document.createElement('div');
     icon.className = 'lock-overlay-icon';
-    icon.textContent = '🔒';
+    icon.textContent = isPaid ? '🔒' : '⏳';
     var txt = document.createElement('div');
     txt.className = 'lock-overlay-text';
-    txt.textContent = isPaid ? 'Unlocks at door open' : 'Awaiting payment';
+    txt.textContent = isPaid ? 'Unlocks at door open'
+      : order.status === 'EXPIRED' ? 'Order expired'
+      : order.status === 'CANCELED' ? 'Order canceled'
+      : 'Awaiting payment';
     overlay.appendChild(icon);
     overlay.appendChild(txt);
     preview.appendChild(overlay);

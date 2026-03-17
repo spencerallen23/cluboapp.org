@@ -13,14 +13,14 @@
 .screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(58px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
 
 .title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:12px;}
-.profile-card{background:#0F0F1A;border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;margin-bottom:14px;position:relative;overflow:hidden;}
-.profile-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);}
-.avatar{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:rgba(255,255,255,.65);flex-shrink:0;}
+.profile-card{background:#0F0F1A;border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;margin-bottom:14px;position:relative;overflow:visible;}
+.profile-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);border-radius:18px 18px 0 0;}
+.avatar{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:rgba(255,255,255,.65);flex-shrink:0;}
 .pmeta{display:flex;align-items:center;gap:12px;}
-.pname{font-size:14px;font-weight:500;color:#fff;line-height:1.2;}
+.pname{font-size:15px;font-weight:500;color:#fff;line-height:1.2;}
 .pdesc{font-size:11px;font-weight:300;color:rgba(255,255,255,.32);margin-top:2px;}
 .stats{display:flex;gap:8px;}
-.stat{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px 6px;text-align:center;}
+.stat{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 6px;text-align:center;min-width:0;}
 .stat-val{font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:#fff;}
 .stat-lbl{font-size:8px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.22);margin-top:3px;}
 
@@ -106,17 +106,17 @@
           </div>
           <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="rgba(255,255,255,.55)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-
-        <a class="row" href="clubo-v2-14-ambassador.html">
+        <a class="row" href="clubo-v2-11-seller-sold.html">
           <div class="row-left">
             <div class="ico">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1.8l1.2 2.6 2.8.3-2.1 1.9.6 2.8L7 8.3 4.5 9.4l.6-2.8L3 4.7l2.8-.3L7 1.8z" stroke="rgba(255,255,255,.45)" stroke-width="1.1" stroke-linejoin="round"/>
+                <rect x="2" y="4" width="10" height="8" rx="1.5" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/>
+                <path d="M4 7h6M4 9.5h4" stroke="rgba(255,255,255,.45)" stroke-width="1.2" stroke-linecap="round"/>
               </svg>
             </div>
             <div class="row-text">
-              <div class="row-main">Become an ambassador</div>
-              <div class="row-sub">Invite your campus, earn perks</div>
+              <div class="row-main">My listings</div>
+              <div class="row-sub">Manage your active listings</div>
             </div>
           </div>
           <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="rgba(255,255,255,.55)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -140,7 +140,6 @@
           </div>
           <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="rgba(255,255,255,.55)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-
         <a class="row" href="clubo-v2-04-home.html">
           <div class="row-left">
             <div class="ico">
@@ -156,23 +155,6 @@
             </div>
           </div>
           <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="rgba(255,255,255,.55)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-
-        <!-- IMPORTANT: logout now clears localStorage via splash?logout=1 -->
-        <a class="row danger" href="#" id="logout-btn">
-          <div class="row-left">
-            <div class="ico" style="background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.22);">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M5 4.2h5M6 4.2v7.4M8 4.2v7.4" stroke="rgba(239,68,68,.85)" stroke-width="1.2" stroke-linecap="round"/>
-                <path d="M4.2 4.2l.6 8.2h4.4l.6-8.2" stroke="rgba(239,68,68,.85)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="row-text">
-              <div class="row-main">Log out</div>
-              <div class="row-sub">Return to splash screen</div>
-            </div>
-          </div>
-          <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="rgba(239,68,68,.65)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
       </div>
     </div>
@@ -261,14 +243,6 @@ window.addEventListener('DOMContentLoaded', async function(){
   }
 });
 
-var logoutBtn = document.getElementById('logout-btn');
-if(logoutBtn){
-  logoutBtn.addEventListener('click', function(e){
-    e.preventDefault();
-    if(typeof ClubAuth !== 'undefined') ClubAuth.logout();
-    else { localStorage.clear(); window.location.replace('clubo-v2-01-splash.html'); }
-  });
-}
 </script>
 </body>
 </html>
