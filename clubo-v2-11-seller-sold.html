@@ -3,147 +3,367 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clubo — 11 Seller Sold</title>
+<title>Clubo — My Sales</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="common.css">
 <style>
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
-.check{width:66px;height:66px;border-radius:50%;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
-.title{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1.2;margin-bottom:8px;}
-.sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.32);line-height:1.6;margin-bottom:18px;}
-.cta-btn{width:100%;height:52px;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#08080F;display:flex;align-items:center;justify-content:center;text-decoration:none;}
-
-
-/* Nav */
+@keyframes spin{to{transform:rotate(360deg)}}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:calc(74px + env(safe-area-inset-top));padding-bottom:calc(86px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.screen::-webkit-scrollbar{display:none;}
+.section-block{padding:0 22px;margin-bottom:24px;}
+.section-lbl{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.section-count{background:rgba(255,255,255,.08);border-radius:100px;padding:2px 8px;font-size:9px;font-weight:500;color:rgba(255,255,255,.5);}
+.badge-alert{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);color:rgba(239,68,68,.9);}
+.listing-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.lc-left{flex:1;min-width:0;}
+.lc-event{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.28);margin-bottom:3px;}
+.lc-title{font-size:14px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lc-meta{font-size:11px;font-weight:300;color:rgba(255,255,255,.35);margin-top:3px;}
+.lc-right{text-align:right;flex-shrink:0;}
+.lc-price{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#fff;letter-spacing:-.02em;}
+.lc-status{font-size:10px;font-weight:400;margin-top:3px;}
+.lc-status.active{color:rgba(74,222,128,.8);}
+.lc-status.sold{color:rgba(255,255,255,.3);}
+.offer-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;}
+.offer-card.my-turn{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.04);}
+.oc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.oc-buyer{font-size:13px;font-weight:500;color:#fff;}
+.oc-chip{font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:100px;}
+.oc-chip.your-turn{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);color:rgba(74,222,128,.9);}
+.oc-chip.waiting{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);}
+.oc-chip.accepted,.oc-chip.paid{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);color:rgba(74,222,128,.9);}
+.oc-chip.declined{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:rgba(239,68,68,.8);}
+.oc-chip.pending,.oc-chip.countered{background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.2);color:rgba(250,204,21,.9);}
+.oc-detail{display:flex;align-items:center;justify-content:space-between;}
+.oc-listing{font-size:11px;font-weight:300;color:rgba(255,255,255,.4);}
+.oc-price{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#fff;}
+.oc-qty{font-size:11px;font-weight:300;color:rgba(255,255,255,.3);margin-top:1px;text-align:right;}
+.order-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;margin-bottom:8px;}
+.order-card.needs-action{border-color:rgba(250,204,21,.2);background:rgba(250,204,21,.03);}
+.oc2-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.oc2-event{font-size:11px;font-weight:300;color:rgba(255,255,255,.35);}
+.oc2-amount{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:#fff;}
+.oc2-buyer{font-size:12px;font-weight:300;color:rgba(255,255,255,.4);margin-bottom:10px;}
+.deliver-btn{width:100%;height:40px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:rgba(74,222,128,.9);cursor:pointer;}
+.empty{text-align:center;padding:32px 0;color:rgba(255,255,255,.2);font-size:13px;font-weight:300;line-height:1.8;}
+/* Chat overlay */
+.chat-overlay{position:fixed;inset:0;background:#08080F;z-index:200;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);}
+.chat-overlay.open{transform:translateY(0);}
+.chat-header{padding:calc(16px + env(safe-area-inset-top)) 20px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.chat-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border-radius:50%;cursor:pointer;flex-shrink:0;}
+.chat-info{flex:1;}
+.chat-title{font-size:15px;font-weight:500;color:#fff;}
+.chat-sub{font-size:11px;font-weight:300;color:rgba(255,255,255,.35);margin-top:2px;}
+.chat-status-chip{font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:100px;flex-shrink:0;}
+.chat-messages{flex:1;overflow-y:auto;padding:20px 20px 8px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;}
+.chat-messages::-webkit-scrollbar{display:none;}
+.msg{max-width:75%;display:flex;flex-direction:column;}
+.msg.buyer{align-self:flex-start;}
+.msg.seller{align-self:flex-end;}
+.msg.system{align-self:center;max-width:90%;}
+.msg-label{font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:5px;padding:0 4px;}
+.msg.seller .msg-label{text-align:right;}
+.msg-bubble{padding:12px 14px;border-radius:16px;}
+.msg.buyer .msg-bubble{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-bottom-left-radius:4px;}
+.msg.seller .msg-bubble{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-bottom-right-radius:4px;}
+.msg.system .msg-bubble{background:transparent;border:1px solid rgba(255,255,255,.07);text-align:center;border-radius:10px;}
+.msg-price{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1;}
+.msg-detail{font-size:11px;font-weight:300;color:rgba(255,255,255,.4);margin-top:3px;}
+.msg-system-text{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);}
+.chat-input-area{padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.counter-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.counter-prefix{font-size:20px;font-weight:400;color:rgba(255,255,255,.4);}
+.counter-field{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:#fff;outline:none;text-align:center;}
+.counter-field::placeholder{color:rgba(255,255,255,.2);}
+.counter-hint{font-size:11px;font-weight:300;color:rgba(255,255,255,.25);text-align:center;margin-bottom:10px;}
+.action-btns{display:flex;gap:8px;}
+.btn-accept{flex:2;height:48px;background:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;cursor:pointer;}
+.btn-accept:disabled{opacity:.4;}
+.btn-decline{flex:1;height:48px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:13px;color:rgba(255,255,255,.5);cursor:pointer;}
+.btn-counter-send{width:100%;height:44px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:400;color:rgba(255,255,255,.7);cursor:pointer;margin-top:8px;}
+.btn-counter-send:disabled{opacity:.35;}
+.counters-left{font-size:10px;font-weight:300;color:rgba(255,255,255,.2);text-align:center;margin-top:6px;}
+.chat-error{font-size:12px;color:rgba(239,68,68,.8);text-align:center;margin-top:6px;min-height:16px;}
+.spinner{width:16px;height:16px;border:2px solid rgba(8,8,15,.3);border-top-color:#08080F;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
 </style>
 </head>
 <body>
-<div class="page-label">Clubo · 11 — Seller: Sold</div>
-
+<div class="page-label">Clubo</div>
 <div class="phone">
-    <div class="top-bar">
-      <div class="top-title">Clubo</div>
+  <div class="top-bar"><div class="top-title">My Sales</div></div>
+  <div class="screen" id="mainScreen">
+    <div class="section-block" style="margin-top:16px;">
+      <div class="section-lbl">My Listings <span class="section-count" id="listings-count">—</span></div>
+      <div id="listings-container"><div class="empty">Loading…</div></div>
     </div>
-  <div class="screen">
-    <div class="check">
-      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-        <path d="M6 15l6 6 12-12" stroke="#4ADE80" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+    <div class="section-block">
+      <div class="section-lbl">Offers <span class="section-count badge-alert" id="offers-count" style="display:none;"></span></div>
+      <div id="offers-container"><div class="empty">No active offers.</div></div>
     </div>
-    <div class="title" id="soldTitle">Sold.</div>
-    <div class="sub" id="soldSub">Transfer the ticket to the buyer via the venue's original platform.<br>Once done, confirm below to release payment.</div>
-
-    <div id="ordersLoading" style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:14px;">Loading your sales…</div>
-    <div id="ordersList" style="display:none;margin-bottom:18px;display:flex;flex-direction:column;gap:10px;"></div>
-
-    <div id="confirmArea" style="display:none;">
-      <div id="confirm-error" style="display:none;color:rgba(239,68,68,.85);font-size:12px;text-align:center;margin-bottom:8px;"></div>
-      <button id="confirmBtn" class="cta-btn" style="margin-bottom:10px;">I Have Transferred</button>
+    <div class="section-block">
+      <div class="section-lbl">Sold Orders <span class="section-count" id="orders-count">—</span></div>
+      <div id="orders-container"><div class="empty">No sales yet.</div></div>
     </div>
-    <a class="cta-btn" href="clubo-v2-04-home.html" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);">Back to Home</a>
   </div>
-
   <div class="bottom-nav">
-    <a class="nav-link" href="clubo-v2-04-home.html">
-      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div>
-    </a>
-    <a class="nav-link" href="clubo-v2-09-sell.html">
-      <div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div>
-    </a>
-    <a class="nav-link" href="clubo-v2-15-balance.html">
-      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.25)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div>
-    </a>
-    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html">
-      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div>
-    </a>
-    <a class="nav-link" href="clubo-v2-12-profile.html">
-      <div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div>
-    </a>
+    <a class="nav-link" href="clubo-v2-04-home.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div></a>
+    <a class="nav-link" href="clubo-v2-09-sell.html"><div class="nav-item active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.9)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.9)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div></a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div></a>
+    <a class="nav-link" href="clubo-v2-12-profile.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div></a>
+  </div>
+</div>
+
+<!-- Chat Overlay -->
+<div class="chat-overlay" id="chatOverlay">
+  <div class="chat-header">
+    <div class="chat-back" onclick="closeChat()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="chat-info">
+      <div class="chat-title" id="chat-title">Offer</div>
+      <div class="chat-sub" id="chat-sub">—</div>
+    </div>
+    <div class="chat-status-chip oc-chip" id="chat-chip"></div>
+  </div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-input-area" id="chat-input-area">
+    <div id="counter-input-section" style="display:none;">
+      <div class="counter-row">
+        <span class="counter-prefix">€</span>
+        <input type="number" class="counter-field" id="counter-field" placeholder="0" inputmode="decimal" min="0">
+      </div>
+      <div class="counter-hint" id="counter-hint"></div>
+    </div>
+    <div class="action-btns" id="action-btns" style="display:none;">
+      <button class="btn-accept" id="btn-accept">Accept</button>
+      <button class="btn-decline" id="btn-decline">Decline</button>
+    </div>
+    <button class="btn-counter-send" id="btn-counter-send" style="display:none;">Send Counter</button>
+    <div class="counters-left" id="counters-left"></div>
+    <div class="chat-error" id="chat-error"></div>
   </div>
 </div>
 
 <script src="auth.js"></script>
-<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
-<script src="transition.js" defer></script>
 <script>
-window.addEventListener('DOMContentLoaded', async function(){
-  var loadingEl   = document.getElementById('ordersLoading');
-  var listEl      = document.getElementById('ordersList');
-  var confirmArea = document.getElementById('confirmArea');
-  var confirmBtn  = document.getElementById('confirmBtn');
-  var errEl       = document.getElementById('confirm-error');
+var currentOffer = null;
 
-  var pendingOrderId = localStorage.getItem('clubo_seller_pending_order');
-
-  try {
-    var orders = await ClubAuth.getSellerOrders();
-    // Show only PAID orders (need delivery confirmation)
-    var paidOrders = orders.filter(function(o){ return o.status === 'PAID'; });
-    loadingEl.style.display = 'none';
-
-    if (paidOrders.length === 0) {
-      listEl.style.display = 'none';
-      document.getElementById('soldTitle').textContent = 'No pending transfers.';
-      document.getElementById('soldSub').textContent = 'You have no sales waiting for ticket transfer.';
-      return;
-    }
-
-    listEl.style.display = 'flex';
-    listEl.innerHTML = paidOrders.map(function(o){
-      var selected = (o.id === pendingOrderId) ? 'border-color:rgba(255,255,255,.25);' : '';
-      return [
-        '<div class="order-card" data-order-id="' + o.id + '" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:12px 14px;cursor:pointer;' + selected + '">',
-          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">',
-            '<div style="font-size:13px;font-weight:500;color:#fff;">' + (o.listing.title || o.listing.event) + '</div>',
-            '<div style="font-size:13px;font-weight:700;color:#fff;font-family:Fraunces,serif;">€' + (o.totalPrice/100).toFixed(2) + '</div>',
-          '</div>',
-          '<div style="font-size:11px;color:rgba(255,255,255,.3);">Buyer: ' + o.buyer.phone + '</div>',
-        '</div>',
-      ].join('');
-    }).join('');
-
-    // If only one order or we have a pending order in localStorage, pre-select it
-    var activeOrderId = pendingOrderId || paidOrders[0].id;
-
-    listEl.querySelectorAll('.order-card').forEach(function(card){
-      card.addEventListener('click', function(){
-        listEl.querySelectorAll('.order-card').forEach(function(c){ c.style.borderColor='rgba(255,255,255,.09)'; });
-        card.style.borderColor = 'rgba(255,255,255,.25)';
-        activeOrderId = card.getAttribute('data-order-id');
-      });
-    });
-
-    // Pre-select
-    var preCard = listEl.querySelector('[data-order-id="' + activeOrderId + '"]');
-    if (preCard) preCard.style.borderColor = 'rgba(255,255,255,.25)';
-
-    confirmArea.style.display = 'block';
-
-    confirmBtn.addEventListener('click', async function(){
-      errEl.style.display = 'none';
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = 'Confirming…';
-      try {
-        await ClubAuth.confirmDelivery(activeOrderId);
-        localStorage.removeItem('clubo_seller_pending_order');
-        document.getElementById('soldTitle').textContent = 'Done!';
-        document.getElementById('soldSub').textContent = 'Payment will be released to your balance automatically.';
-        confirmArea.style.display = 'none';
-        listEl.style.display = 'none';
-        loadingEl.style.display = 'none';
-      } catch(err) {
-        errEl.textContent = err.message || 'Could not confirm. Try again.';
-        errEl.style.display = 'block';
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'I Have Transferred';
-      }
-    });
-
-  } catch(err) {
-    loadingEl.textContent = 'Could not load orders.';
-  }
+window.addEventListener('DOMContentLoaded', async function() {
+  if (typeof ClubAuth !== 'undefined') ClubAuth.requireAuth();
+  await loadAll();
 });
+
+async function loadAll() {
+  try {
+    var results = await Promise.all([
+      ClubAuth.apiFetch('/listings/mine'),
+      ClubAuth.apiFetch('/offers/seller'),
+      ClubAuth.apiFetch('/orders/seller'),
+    ]);
+    renderListings(results[0].listings || []);
+    renderOffers(results[1].offers || []);
+    renderOrders(results[2].orders || []);
+  } catch(e) { console.error('Load error:', e); }
+}
+
+function renderListings(listings) {
+  var el = document.getElementById('listings-container');
+  document.getElementById('listings-count').textContent = listings.length;
+  if (!listings.length) { el.innerHTML = '<div class="empty">No listings yet.<br><span style="opacity:.5">Go to Sell to list a ticket.</span></div>'; return; }
+  var events = { mondays: 'Mondays · Fabrik', istar: 'Istar · Istar Madrid' };
+  el.innerHTML = listings.map(function(l) {
+    var remaining = l.remainingQuantity != null ? l.remainingQuantity : l.quantity;
+    var statusText = l.status === 'active' ? (remaining + ' remaining') : 'Sold out';
+    return '<div class="listing-card">'
+      + '<div class="lc-left"><div class="lc-event">' + esc(events[l.event] || l.eventLabel || 'Event') + '</div>'
+      + '<div class="lc-title">' + esc(l.title) + '</div>'
+      + '<div class="lc-meta">' + l.quantity + ' ticket' + (l.quantity > 1 ? 's' : '') + ' · ' + (l.aiScanResult === 'PASS' ? '✓ Verified' : 'Pending scan') + '</div></div>'
+      + '<div class="lc-right"><div class="lc-price">€' + Math.floor(l.price / 100) + '</div>'
+      + '<div class="lc-status ' + (l.status === 'active' ? 'active' : 'sold') + '">' + statusText + '</div></div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderOffers(offers) {
+  var el = document.getElementById('offers-container');
+  var countEl = document.getElementById('offers-count');
+  var active = offers.filter(function(o) { return ['PENDING','COUNTERED'].includes(o.status); });
+  var myTurn = active.filter(function(o) { return o.currentActor === 'seller'; });
+  if (myTurn.length > 0) { countEl.textContent = myTurn.length + ' need response'; countEl.style.display = ''; }
+  else { countEl.style.display = 'none'; }
+  if (!active.length) { el.innerHTML = '<div class="empty">No active offers.</div>'; return; }
+  el.innerHTML = active.map(function(o) {
+    var isMyTurn = o.currentActor === 'seller';
+    var buyerName = o.buyer ? (o.buyer.firstName || ('···' + o.buyer.phone.slice(-4))) : 'Buyer';
+    return '<div class="offer-card ' + (isMyTurn ? 'my-turn' : '') + '" onclick="openChat(\'' + o.id + '\')">'
+      + '<div class="oc-top"><div class="oc-buyer">' + esc(buyerName) + '</div>'
+      + '<span class="oc-chip ' + (isMyTurn ? 'your-turn' : 'waiting') + '">' + (isMyTurn ? 'Your turn' : 'Waiting') + '</span></div>'
+      + '<div class="oc-detail"><div class="oc-listing">' + esc(o.listing ? o.listing.title : '') + ' · ' + o.quantity + ' ticket' + (o.quantity > 1 ? 's' : '') + '</div>'
+      + '<div><div class="oc-price">€' + Math.floor(o.pricePerTicket / 100) + '</div>'
+      + '<div class="oc-qty">€' + (o.totalPrice / 100).toFixed(2) + ' total</div></div></div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderOrders(orders) {
+  var el = document.getElementById('orders-container');
+  document.getElementById('orders-count').textContent = orders.length;
+  if (!orders.length) { el.innerHTML = '<div class="empty">No sales yet.<br><span style="opacity:.5">When a buyer pays, your orders appear here.</span></div>'; return; }
+  el.innerHTML = orders.map(function(o) {
+    var needsAction = o.status === 'PAID';
+    var buyerDisplay = o.buyer ? ('···' + o.buyer.phone.slice(-4)) : 'Buyer';
+    var eventLabel = o.listing ? (o.listing.event === 'mondays' ? 'Mondays' : o.listing.event === 'istar' ? 'Istar' : o.listing.eventLabel || 'Event') : 'Event';
+    return '<div class="order-card' + (needsAction ? ' needs-action' : '') + '">'
+      + '<div class="oc2-top"><div class="oc2-event">' + esc(eventLabel) + ' · ' + o.quantity + ' ticket' + (o.quantity > 1 ? 's' : '') + '</div>'
+      + '<div class="oc2-amount">€' + (o.totalPrice / 100).toFixed(2) + '</div></div>'
+      + '<div class="oc2-buyer">Buyer: ' + esc(buyerDisplay) + ' · ' + o.status + '</div>'
+      + (needsAction ? '<button class="deliver-btn" onclick="markDelivered(\'' + o.id + '\', this)">I Have Transferred the Ticket →</button>' : '')
+      + '</div>';
+  }).join('');
+}
+
+async function markDelivered(orderId, btn) {
+  btn.disabled = true; btn.textContent = 'Confirming…';
+  try { await ClubAuth.apiFetch('/orders/' + orderId + '/deliver', { method: 'POST' }); await loadAll(); }
+  catch(e) { btn.disabled = false; btn.textContent = 'I Have Transferred the Ticket →'; alert(e.message); }
+}
+
+async function openChat(offerId) {
+  try {
+    var data = await ClubAuth.apiFetch('/offers/' + offerId);
+    currentOffer = data.offer;
+    renderChat(currentOffer);
+    document.getElementById('chatOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function() { var m = document.getElementById('chat-messages'); m.scrollTop = m.scrollHeight; }, 100);
+  } catch(e) { alert('Could not load offer: ' + e.message); }
+}
+
+function closeChat() {
+  document.getElementById('chatOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  currentOffer = null;
+  loadAll();
+}
+
+function renderChat(offer) {
+  var isMyTurn = offer.currentActor === 'seller';
+  var isActive = ['PENDING','COUNTERED'].includes(offer.status);
+  var canCounter = offer.counterCount < 3;
+  var listingPrice = offer.listing ? offer.listing.price : 0;
+  var floor = Math.ceil(listingPrice * 0.92);
+  var buyerName = offer.buyer ? (offer.buyer.firstName || ('···' + offer.buyer.phone.slice(-4))) : 'Buyer';
+
+  document.getElementById('chat-title').textContent = buyerName + ' · ' + (offer.listing ? offer.listing.title : 'Offer');
+  document.getElementById('chat-sub').textContent = offer.quantity + ' ticket' + (offer.quantity > 1 ? 's' : '') + ' · ' + (3 - offer.counterCount) + ' counter' + (3 - offer.counterCount === 1 ? '' : 's') + ' left';
+
+  var chip = document.getElementById('chat-chip');
+  var chipMap = { PENDING: 'pending', COUNTERED: 'countered', ACCEPTED: 'accepted', DECLINED: 'declined', PAID: 'paid', FAILED: 'declined' };
+  chip.className = 'chat-status-chip oc-chip ' + (chipMap[offer.status] || 'waiting');
+  chip.textContent = offer.status.charAt(0) + offer.status.slice(1).toLowerCase();
+
+  var msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '';
+  (offer.events || []).forEach(function(ev) {
+    var msgEl = document.createElement('div');
+    if (ev.action === 'OFFER' || ev.action === 'COUNTER') {
+      msgEl.className = 'msg ' + ev.actor;
+      var label = ev.action === 'OFFER' ? (ev.actor === 'buyer' ? 'Buyer offer' : 'Your counter') : (ev.actor === 'buyer' ? 'Buyer counter' : 'Your counter');
+      msgEl.innerHTML = '<div class="msg-label">' + label + '</div>'
+        + '<div class="msg-bubble"><div class="msg-price">€' + Math.floor(ev.price / 100) + '</div>'
+        + '<div class="msg-detail">per ticket · ' + ev.quantity + ' ticket' + (ev.quantity > 1 ? 's' : '') + ' · €' + ((ev.price * ev.quantity) / 100).toFixed(2) + ' total</div></div>';
+    } else {
+      msgEl.className = 'msg system';
+      var actionText = { ACCEPT: '✓ Accepted', DECLINE: '✗ Declined' }[ev.action] || ev.action;
+      msgEl.innerHTML = '<div class="msg-bubble"><div class="msg-system-text">' + actionText + ' by ' + ev.actor + '</div></div>';
+    }
+    msgs.appendChild(msgEl);
+  });
+
+  var actionBtns = document.getElementById('action-btns');
+  var counterSection = document.getElementById('counter-input-section');
+  var counterSendBtn = document.getElementById('btn-counter-send');
+  var countersLeftEl = document.getElementById('counters-left');
+  document.getElementById('chat-error').textContent = '';
+
+  if (isActive && isMyTurn) {
+    actionBtns.style.display = 'flex';
+    document.getElementById('btn-accept').disabled = false;
+    document.getElementById('btn-accept').textContent = 'Accept';
+    if (canCounter) {
+      counterSection.style.display = 'block';
+      counterSendBtn.style.display = 'block';
+      document.getElementById('counter-field').value = Math.floor(offer.pricePerTicket / 100);
+      document.getElementById('counter-hint').textContent = 'Min €' + Math.floor(floor / 100) + ' · Max €' + Math.floor(listingPrice / 100);
+      countersLeftEl.textContent = (3 - offer.counterCount) + ' counter' + (3 - offer.counterCount === 1 ? '' : 's') + ' remaining';
+    } else {
+      counterSection.style.display = 'none';
+      counterSendBtn.style.display = 'none';
+      countersLeftEl.textContent = 'No counters left — accept or decline';
+    }
+    document.getElementById('btn-accept').onclick = acceptOffer;
+    document.getElementById('btn-decline').onclick = declineOffer;
+    counterSendBtn.onclick = sendCounter;
+  } else {
+    actionBtns.style.display = 'none';
+    counterSection.style.display = 'none';
+    counterSendBtn.style.display = 'none';
+    countersLeftEl.textContent = !isActive ? (offer.status === 'PAID' ? 'Deal complete — payment processing' : 'This offer is closed') : 'Waiting for buyer response…';
+  }
+}
+
+async function acceptOffer() {
+  var btn = document.getElementById('btn-accept');
+  document.getElementById('chat-error').textContent = '';
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
+  try {
+    await ClubAuth.apiFetch('/offers/' + currentOffer.id + '/accept', { method: 'POST' });
+    var data = await ClubAuth.apiFetch('/offers/' + currentOffer.id);
+    currentOffer = data.offer; renderChat(currentOffer);
+    setTimeout(function() { var m = document.getElementById('chat-messages'); m.scrollTop = m.scrollHeight; }, 50);
+  } catch(e) {
+    document.getElementById('chat-error').textContent = e.message || 'Could not accept';
+    btn.disabled = false; btn.textContent = 'Accept';
+  }
+}
+
+async function declineOffer() {
+  document.getElementById('chat-error').textContent = '';
+  try {
+    await ClubAuth.apiFetch('/offers/' + currentOffer.id + '/decline', { method: 'POST' });
+    var data = await ClubAuth.apiFetch('/offers/' + currentOffer.id);
+    currentOffer = data.offer; renderChat(currentOffer);
+    setTimeout(function() { var m = document.getElementById('chat-messages'); m.scrollTop = m.scrollHeight; }, 50);
+  } catch(e) { document.getElementById('chat-error').textContent = e.message || 'Could not decline'; }
+}
+
+async function sendCounter() {
+  var field = document.getElementById('counter-field');
+  var errEl = document.getElementById('chat-error');
+  errEl.textContent = '';
+  var priceEuros = parseFloat(field.value);
+  if (isNaN(priceEuros) || priceEuros <= 0) { errEl.textContent = 'Enter a valid price'; return; }
+  var priceCents = Math.round(priceEuros * 100);
+  var floor = Math.ceil((currentOffer.listing ? currentOffer.listing.price : 0) * 0.92);
+  var max = currentOffer.listing ? currentOffer.listing.price : Infinity;
+  if (priceCents < floor) { errEl.textContent = 'Minimum €' + Math.floor(floor / 100); return; }
+  if (priceCents > max) { errEl.textContent = 'Cannot exceed list price'; return; }
+  var btn = document.getElementById('btn-counter-send');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await ClubAuth.apiFetch('/offers/' + currentOffer.id + '/counter', { method: 'POST', body: JSON.stringify({ pricePerTicket: priceCents }) });
+    var data = await ClubAuth.apiFetch('/offers/' + currentOffer.id);
+    currentOffer = data.offer; renderChat(currentOffer);
+    setTimeout(function() { var m = document.getElementById('chat-messages'); m.scrollTop = m.scrollHeight; }, 50);
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not send counter';
+    btn.disabled = false; btn.textContent = 'Send Counter';
+  }
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
+<script src="transition.js" defer></script>
 </body>
 </html>
