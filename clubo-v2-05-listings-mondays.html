@@ -117,8 +117,12 @@
 window.addEventListener('DOMContentLoaded', function(){
   function adjust(){
     var h = document.getElementById('listingsHeader').offsetHeight;
+    var nav = document.querySelector('.bottom-nav');
+    var navH = nav ? nav.offsetHeight : 80;
     var s = document.getElementById('ticketsScroll');
     s.style.top = h + 'px';
+    s.style.bottom = navH + 'px';
+    s.style.paddingBottom = '12px';
   }
   adjust();
   window.addEventListener('resize', adjust);
