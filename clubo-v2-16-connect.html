@@ -120,7 +120,9 @@
 <script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
 <script src="transition.js" defer></script>
 <script>
-var API = 'http://' + window.location.hostname + ':3000';
+var API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:3000'
+  : 'https://clubo-api-production.up.railway.app';
 
 function setStatus(status) {
   var icon   = document.getElementById('statusIcon');
@@ -168,9 +170,7 @@ function setStatus(status) {
 // Load current status on page load
 window.addEventListener('DOMContentLoaded', async function(){
   try {
-    var token = ClubAuth.getToken();
-    var res   = await fetch(API + '/connect/status', { headers: { 'Authorization': 'Bearer ' + token } });
-    var data  = await res.json();
+    var data = await ClubAuth.apiFetch('/connect/status');
     setStatus(data.status || 'none');
   } catch(e) {
     setStatus('none');
@@ -189,14 +189,7 @@ document.getElementById('connectBtn').addEventListener('click', async function()
   btnTxt.textContent = 'Opening Stripe…';
 
   try {
-    var token = ClubAuth.getToken();
-    var res   = await fetch(API + '/connect/onboard', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
-    });
-    var data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Could not start onboarding');
-    // Open Stripe Connect onboarding — user returns via return_url set in backend
+    var data = await ClubAuth.apiFetch('/connect/onboard', { method: 'POST' });
     window.location.href = data.url;
   } catch(err) {
     errMsg.textContent = err.message || 'Something went wrong. Try again.';
@@ -213,13 +206,7 @@ document.getElementById('refreshBtn').addEventListener('click', async function()
   btn.textContent = 'Checking…';
   btn.disabled = true;
   try {
-    var token = ClubAuth.getToken();
-    // Call connect/return to sync status then redirect back to balance
-    var res  = await fetch(API + '/connect/return', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
-    });
-    var data = await res.json();
+    var data = await ClubAuth.apiFetch('/connect/return', { method: 'POST' });
     setStatus(data.verified ? 'verified' : 'pending');
   } catch(e) {}
   btn.textContent = 'Check verification status';
@@ -230,16 +217,9 @@ document.getElementById('refreshBtn').addEventListener('click', async function()
 (function(){
   var params = new URLSearchParams(window.location.search);
   if (params.get('return') || params.get('refresh')) {
-    // Auto-call return endpoint to sync
-    var token = ClubAuth.getToken();
-    if (token) {
-      fetch(API + '/connect/return', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
-      }).then(function(r){ return r.json(); }).then(function(data){
-        setStatus(data.verified ? 'verified' : 'pending');
-      }).catch(function(){});
-    }
+    ClubAuth.apiFetch('/connect/return', { method: 'POST' })
+      .then(function(data){ setStatus(data.verified ? 'verified' : 'pending'); })
+      .catch(function(){});
   }
 })();
 </script>
