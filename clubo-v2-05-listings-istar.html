@@ -39,7 +39,9 @@
   overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
   display:flex;flex-direction:column;gap:9px;
   padding:12px 22px;
+  opacity:0;transition:opacity .2s ease;
 }
+.tickets-scroll.ready{opacity:1;}
 .tickets-scroll::-webkit-scrollbar{display:none;}
 
 /* Cards */
@@ -122,6 +124,7 @@ window.addEventListener('DOMContentLoaded', function(){
     if (!header || !nav || !scroll) return;
     scroll.style.top    = header.getBoundingClientRect().height + 'px';
     scroll.style.bottom = nav.getBoundingClientRect().height + 'px';
+    scroll.classList.add('ready');
   }
   adjust();
   setTimeout(adjust, 100);

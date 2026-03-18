@@ -20,15 +20,17 @@
 .tag{display:inline-flex;align-items:center;justify-content:center;height:18px;padding:0 8px;border-radius:999px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:rgba(239,68,68,.8);margin-left:8px;}
 
 /* Upload area */
-.upload-area{border:1.5px dashed rgba(255,255,255,.15);border-radius:14px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;cursor:pointer;transition:border-color .2s,background .2s;min-height:80px;}
+.upload-area{border:1.5px dashed rgba(255,255,255,.15);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;cursor:pointer;transition:border-color .2s,background .2s;min-height:100px;position:relative;}
 .upload-area:hover,.upload-area.drag{border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.04);}
-.upload-area.has-file{border-style:solid;border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.05);}
+.upload-area.has-file{border-style:solid;border-color:rgba(74,222,128,.35);padding:0;}
+.upload-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 16px;}
 .upload-icon{color:rgba(255,255,255,.3);}
 .upload-area.has-file .upload-icon{color:#4ADE80;}
 .upload-label{font-size:13px;font-weight:400;color:rgba(255,255,255,.45);}
 .upload-area.has-file .upload-label{color:#4ADE80;font-weight:500;}
 .upload-sub{font-size:11px;font-weight:300;color:rgba(255,255,255,.2);}
-.thumb-preview{width:100%;border-radius:10px;max-height:120px;object-fit:cover;margin-top:4px;display:none;}
+.thumb-preview{width:100%;height:160px;object-fit:contain;background:rgba(0,0,0,.3);display:none;}
+.thumb-replace{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);padding:7px;text-align:center;font-size:11px;font-weight:400;color:rgba(255,255,255,.6);}
 
 .cta-area{margin-top:auto;padding-bottom:14px;}
 .cta-btn{width:100%;height:52px;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#08080F;display:flex;align-items:center;justify-content:center;text-decoration:none;border:none;cursor:pointer;}
@@ -73,10 +75,13 @@
     <div class="label">Ticket Screenshot <span class="tag">Mandatory</span></div>
     <input type="file" id="ticketFileInput" accept="image/*" style="display:none;" />
     <div class="upload-area" id="uploadArea">
-      <svg class="upload-icon" width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 15V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 9l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      <div class="upload-label" id="uploadLabel">Tap to upload screenshot</div>
-      <div class="upload-sub" id="uploadSub">JPG, PNG or WEBP · Max 10MB</div>
+      <div class="upload-empty" id="uploadEmpty">
+        <svg class="upload-icon" width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 15V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 9l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div class="upload-label" id="uploadLabel">Tap to upload screenshot</div>
+        <div class="upload-sub" id="uploadSub">JPG, PNG or WEBP · Max 10MB</div>
+      </div>
       <img id="thumbPreview" class="thumb-preview" alt="Ticket preview" />
+      <div class="thumb-replace" id="thumbReplace" style="display:none;">Tap to replace</div>
     </div>
 
     <div class="cta-area">
@@ -138,18 +143,12 @@ document.getElementById('ticketFileInput').addEventListener('change', function(e
 });
 
 function handleFile(f) {
-  if (!f.type.startsWith('image/')) {
-    showError('Please upload an image file.');
-    return;
-  }
-  if (f.size > 10 * 1024 * 1024) {
-    showError('File too large — max 10MB.');
-    return;
-  }
+  if (!f.type.startsWith('image/')) { showError('Please upload an image file.'); return; }
+  if (f.size > 10 * 1024 * 1024) { showError('File too large — max 10MB.'); return; }
   selectedFile = f;
   uploadArea.classList.add('has-file');
-  document.getElementById('uploadLabel').textContent = f.name;
-  document.getElementById('uploadSub').textContent = 'Tap to replace';
+  document.getElementById('uploadEmpty').style.display = 'none';
+  document.getElementById('thumbReplace').style.display = 'block';
   var reader = new FileReader();
   reader.onload = function(e) {
     var thumb = document.getElementById('thumbPreview');
@@ -157,6 +156,17 @@ function handleFile(f) {
     thumb.style.display = 'block';
   };
   reader.readAsDataURL(f);
+}
+
+function clearUpload() {
+  selectedFile = null;
+  uploadArea.classList.remove('has-file');
+  document.getElementById('uploadEmpty').style.display = 'flex';
+  document.getElementById('thumbReplace').style.display = 'none';
+  var thumb = document.getElementById('thumbPreview');
+  thumb.src = '';
+  thumb.style.display = 'none';
+  document.getElementById('ticketFileInput').value = '';
 }
 
 function showError(msg) {
@@ -200,9 +210,11 @@ document.getElementById('listBtn').addEventListener('click', async function() {
     var result = await ClubAuth.attachTicketUrl(listing.id, uploadData.publicUrl);
 
     if (!result.ok) {
-      // AI scan rejected
+      // AI scan rejected — delete the listing we just created
+      try { await ClubAuth.cancelListing(listing.id); } catch(e) {}
       var flags = (result.scan && result.scan.flags && result.scan.flags.length) ? result.scan.flags.join(', ') : 'Ticket could not be verified';
-      showError('Ticket rejected: ' + flags + '. Please upload a clearer screenshot.');
+      showError('Ticket rejected: ' + flags + '. Please upload a valid ticket screenshot.');
+      clearUpload();
       btn.disabled = false;
       btn.textContent = 'List Ticket';
       return;
