@@ -47,8 +47,6 @@
 
   async function verifyAuth(phone, code, firstName, lastName) {
     var body = { phone, code };
-    if (firstName) body.firstName = firstName;
-    if (lastName)  body.lastName  = lastName;
     var res = await fetch(API + '/auth/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -57,6 +55,12 @@
     var data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Invalid code');
     setToken(data.token);
+    if (firstName || lastName) {
+      var nameBody = {};
+      if (firstName) nameBody.firstName = firstName;
+      if (lastName)  nameBody.lastName  = lastName;
+      await apiFetch('/me', { method: 'PATCH', body: JSON.stringify(nameBody) });
+    }
     return data;
   }
 
