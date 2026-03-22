@@ -69,8 +69,6 @@
 
     // Fade in only .screen — nav is already fully painted
     var screen = document.querySelector('.screen');
-    var lh = document.getElementById('listingsHeader');
-    var ts = document.getElementById('ticketsScroll');
     var phone = document.querySelector('.phone');
 
     function fadeIn(el, delay){
@@ -85,19 +83,6 @@
 
     if(screen){
       fadeIn(screen, 0);
-    } else if(lh){
-      // Listings header: opacity only — no translateY, which would cause a
-      // layout-shift because the scroll area's top is measured from header.height
-      lh.style.opacity='0';
-      lh.getBoundingClientRect();
-      lh.style.transition='opacity .22s cubic-bezier(.16,1,.3,1)';
-      lh.style.opacity='1';
-      if(ts){
-        ts.style.opacity='0';
-        ts.getBoundingClientRect();
-        ts.style.transition='opacity .24s cubic-bezier(.16,1,.3,1) 40ms';
-        ts.style.opacity='1';
-      }
     } else if(phone){
       fadeIn(phone, 0);
     }

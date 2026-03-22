@@ -22,8 +22,7 @@ body{
 .phone{
   width:100%;
   height:100vh;
-  height:100dvh;
-  min-height: -webkit-fill-available;
+  height:var(--app-height, 100dvh);
   background:#08080F;
   border-radius:0;
   position:relative;

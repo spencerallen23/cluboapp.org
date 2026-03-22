@@ -1,5 +1,15 @@
 // auth.js — shared auth + API helpers for Clubo frontend
 
+// Fix iOS Safari viewport height: URL bar appearing inflates min-height:-webkit-fill-available
+// Setting --app-height = window.innerHeight gives us the true visual viewport height
+(function(){
+  function setAppHeight(){
+    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+  }
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+})();
+
 (function(global){
 
   var API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3000' : 'https://clubo-api-production.up.railway.app';
