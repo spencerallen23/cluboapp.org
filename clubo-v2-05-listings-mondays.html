@@ -141,9 +141,12 @@ window.addEventListener('DOMContentLoaded', function(){
     scroll.classList.add('ready');
   }
   adjust();
-  setTimeout(adjust, 100);
-  setTimeout(adjust, 400);
   window.addEventListener('resize', adjust);
+  window.addEventListener('load', adjust);
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(adjust);
+    ro.observe(document.getElementById('listingsHeader'));
+  }
 });
 
 // Live countdown to 23:30

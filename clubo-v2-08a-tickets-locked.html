@@ -239,17 +239,8 @@ function loadOrders() {
     }
 
     var active = orders.filter(function(o) { return !['CANCELED','EXPIRED'].includes(o.status); });
-    var past   = orders.filter(function(o) { return  ['CANCELED','EXPIRED'].includes(o.status); });
 
     active.forEach(function(o) { container.appendChild(buildCard(o)); });
-
-    if (past.length > 0) {
-      var label = document.createElement('div');
-      label.className = 'section-label';
-      label.textContent = 'Past Orders';
-      container.appendChild(label);
-      past.forEach(function(o) { container.appendChild(buildCard(o)); });
-    }
 
     if (sub) sub.textContent = active.length + ' active ticket' + (active.length !== 1 ? 's' : '');
   }).catch(function(err) {
