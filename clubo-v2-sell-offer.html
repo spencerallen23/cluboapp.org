@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubo — Sell Offer</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;padding-top:calc(74px + env(safe-area-inset-top));padding-left:22px;padding-right:22px;padding-bottom:calc(100px + env(safe-area-inset-bottom));scrollbar-width:none;}
+.screen::-webkit-scrollbar{display:none;}
+.back-row{display:flex;align-items:center;gap:6px;margin-bottom:20px;cursor:pointer;opacity:.4;}
+.back-row span{font-size:13px;font-weight:300;color:#fff;}
+.page-title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:#fff;letter-spacing:-.02em;margin-bottom:4px;}
+.page-sub{font-size:13px;font-weight:300;color:rgba(255,255,255,.35);margin-bottom:24px;}
+.section-lbl{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:10px;}
+
+/* Buy order summary card */
+.buy-order-card{background:rgba(160,140,255,.06);border:1px solid rgba(160,140,255,.18);border-radius:14px;padding:14px 16px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;}
+.boc-left{flex:1;}
+.boc-event{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(200,190,255,.5);margin-bottom:3px;}
+.boc-qty{font-size:14px;font-weight:500;color:#fff;}
+.boc-hint{font-size:11px;font-weight:300;color:rgba(255,255,255,.35);margin-top:2px;}
+.boc-price{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:rgba(200,190,255,.9);}
+.boc-price-sub{font-size:10px;font-weight:300;color:rgba(255,255,255,.3);margin-top:2px;text-align:right;}
+
+/* Price input */
+.price-input-row{display:flex;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;margin-bottom:8px;}
+.price-prefix{padding:0 14px;font-size:20px;font-weight:400;color:rgba(255,255,255,.4);}
+.price-field{flex:1;background:transparent;border:none;outline:none;font-family:'Fraunces',serif;font-size:32px;font-weight:700;color:#fff;padding:14px 14px 14px 0;text-align:left;}
+.price-field::placeholder{color:rgba(255,255,255,.2);}
+.price-hint{font-size:11px;font-weight:300;color:rgba(255,255,255,.25);margin-bottom:20px;}
+
+/* Qty */
+.qty-row{display:flex;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;overflow:hidden;margin-bottom:20px;}
+.qty-btn{width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;flex-shrink:0;}
+.qty-btn:active{background:rgba(255,255,255,.08);}
+.qty-val{flex:1;text-align:center;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:#fff;}
+
+/* Total */
+.total-bar{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;}
+.total-lbl{font-size:12px;font-weight:300;color:rgba(255,255,255,.4);}
+.total-val{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#fff;}
+
+.error-msg{font-size:12px;color:rgba(239,68,68,.8);text-align:center;padding:4px 0;min-height:18px;}
+.btn-primary{width:100%;height:52px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-primary:disabled{opacity:.4;}
+.spinner{width:18px;height:18px;border:2px solid rgba(8,8,15,.3);border-top-color:#08080F;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;}
+
+/* ── Thread view ── */
+.thread-screen{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.thread-header{padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
+.thread-title{font-size:15px;font-weight:500;color:#fff;}
+.thread-meta{font-size:11px;font-weight:300;color:rgba(255,255,255,.3);margin-top:2px;}
+.status-chip{display:inline-flex;align-items:center;padding:3px 9px;border-radius:100px;font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-top:6px;}
+.status-chip.pending{background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.25);color:rgba(250,204,21,.9);}
+.status-chip.countered{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:rgba(99,102,241,.9);}
+.status-chip.accepted,.status-chip.paid{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:rgba(74,222,128,.9);}
+.status-chip.declined,.status-chip.failed{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:rgba(239,68,68,.9);}
+
+.messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;}
+.messages::-webkit-scrollbar{display:none;}
+.msg{display:flex;flex-direction:column;max-width:72%;}
+.msg.mine{align-self:flex-end;align-items:flex-end;}
+.msg.theirs{align-self:flex-start;align-items:flex-start;}
+.msg.system{align-self:center;align-items:center;max-width:88%;}
+.msg-sender{font-size:10px;font-weight:400;color:rgba(255,255,255,.25);margin-bottom:3px;letter-spacing:.03em;}
+.msg-bubble{padding:11px 14px;border-radius:18px;position:relative;}
+.msg.mine .msg-bubble{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-bottom-right-radius:5px;}
+.msg.theirs .msg-bubble{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-bottom-left-radius:5px;}
+.msg.system .msg-bubble{background:transparent;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 14px;}
+.msg-price{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1.1;}
+.msg-detail{font-size:11px;font-weight:300;color:rgba(255,255,255,.4);margin-top:3px;}
+.msg-system-text{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);text-align:center;}
+.msg-time{font-size:10px;color:rgba(255,255,255,.2);margin-top:3px;}
+
+/* Action bars */
+.seller-actions{flex-shrink:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:8px;}
+.seller-actions-label{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2);text-align:center;margin-bottom:2px;}
+.btn-accept-full{width:100%;height:52px;background:#fff;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:#08080F;cursor:pointer;}
+.btn-accept-full:disabled{opacity:.4;}
+.btn-row{display:flex;gap:8px;}
+.btn-decline-full{flex:1;height:46px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;font-size:13px;font-weight:400;color:rgba(239,68,68,.8);cursor:pointer;}
+.btn-counter-full{flex:1;height:46px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:13px;font-weight:400;color:rgba(255,255,255,.65);cursor:pointer;}
+
+.counter-panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 16px;display:none;}
+.counter-panel.open{display:block;}
+.counter-input{width:100%;background:transparent;border:none;outline:none;font-family:'Fraunces',serif;font-size:36px;font-weight:700;color:#fff;text-align:center;display:block;margin-bottom:4px;}
+.counter-hint{font-size:11px;font-weight:300;color:rgba(255,255,255,.25);text-align:center;margin-bottom:10px;}
+.btn-send-counter{width:100%;height:46px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;font-size:13px;font-weight:500;color:#fff;cursor:pointer;}
+
+.buyer-actions{flex-shrink:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.07);}
+.waiting-text{font-size:12px;font-weight:300;color:rgba(255,255,255,.3);text-align:center;padding:8px 0;}
+
+.view{display:none;}
+.view.active{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+</style>
+</head>
+<body>
+<div class="page-label">Clubo</div>
+<div class="phone">
+  <div class="top-bar"><div class="top-title">Clubo</div></div>
+
+  <!-- ── View: Make Sell Offer ── -->
+  <div id="view-make" class="view active" style="overflow-y:auto;padding:calc(74px + env(safe-area-inset-top)) 22px calc(100px + env(safe-area-inset-bottom));">
+    <div class="back-row" onclick="history.back()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Back</span>
+    </div>
+    <div class="page-title">Make an Offer</div>
+    <div class="page-sub">Respond to this buy request</div>
+
+    <div class="section-lbl">Buy Request</div>
+    <div class="buy-order-card">
+      <div class="boc-left">
+        <div class="boc-event" id="boc-event">—</div>
+        <div class="boc-qty" id="boc-qty">— tickets requested</div>
+        <div class="boc-hint" id="boc-hint">Buyer's starting offer</div>
+      </div>
+      <div>
+        <div class="boc-price" id="boc-price">€—</div>
+        <div class="boc-price-sub">/ ticket</div>
+      </div>
+    </div>
+
+    <div class="section-lbl">Quantity</div>
+    <div class="qty-row">
+      <button class="qty-btn" id="qty-minus">−</button>
+      <div class="qty-val" id="qty-display">1</div>
+      <button class="qty-btn" id="qty-plus">+</button>
+    </div>
+
+    <div class="section-lbl">Your asking price per ticket</div>
+    <div class="price-input-row">
+      <span class="price-prefix">€</span>
+      <input type="number" class="price-field" id="ask-price-field" placeholder="0" inputmode="decimal" min="0">
+    </div>
+    <div class="price-hint" id="ask-price-hint">Enter your price — it must be at or above the buyer's offer.</div>
+
+    <div class="total-bar">
+      <div class="total-lbl">Total offer</div>
+      <div class="total-val" id="total-display">€—</div>
+    </div>
+
+    <div class="error-msg" id="make-error"></div>
+    <button class="btn-primary" id="submit-offer-btn">
+      <span id="submit-label">Send Offer</span>
+    </button>
+    <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.2);text-align:center;margin-top:10px;line-height:1.5;">
+      Buyer's card will only be charged if they accept.
+    </div>
+  </div>
+
+  <!-- ── View: Negotiation Thread ── -->
+  <div id="view-thread" class="view">
+    <div class="thread-screen">
+      <div class="thread-header" style="padding-top:calc(16px + env(safe-area-inset-top));">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <div class="back-row" style="margin:0;" onclick="history.back()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div class="thread-title" id="thread-title">Negotiation</div>
+            <div class="thread-meta" id="thread-meta">—</div>
+          </div>
+          <div id="thread-status-chip" class="status-chip pending">Pending</div>
+        </div>
+      </div>
+
+      <div class="messages" id="offer-thread"></div>
+
+      <!-- Seller action bar -->
+      <div id="seller-action-bar" style="display:none;">
+        <div class="counter-panel" id="counter-panel">
+          <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.3);text-align:center;margin-bottom:6px;">€ per ticket</div>
+          <input type="number" class="counter-input" id="counter-input" placeholder="0" inputmode="decimal">
+          <div class="counter-hint" id="counter-hint"></div>
+          <button class="btn-send-counter" id="btn-send-counter">Send Counter Offer</button>
+        </div>
+        <div class="seller-actions">
+          <div class="seller-actions-label" id="seller-actions-label">Your turn to respond</div>
+          <button class="btn-accept-full" id="btn-accept">Accept &amp; Charge Buyer</button>
+          <div class="btn-row">
+            <button class="btn-decline-full" id="btn-decline">Decline</button>
+            <button class="btn-counter-full" id="btn-counter">Counter</button>
+          </div>
+          <div class="error-msg" id="thread-error"></div>
+        </div>
+      </div>
+
+      <!-- Buyer action bar -->
+      <div id="buyer-action-bar" style="display:none;">
+        <div class="counter-panel" id="buyer-counter-panel">
+          <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.3);text-align:center;margin-bottom:6px;">€ per ticket</div>
+          <input type="number" class="counter-input" id="buyer-counter-input" placeholder="0" inputmode="decimal">
+          <div class="counter-hint" id="buyer-counter-hint"></div>
+          <button class="btn-send-counter" id="btn-buyer-send-counter">Send Counter Offer</button>
+        </div>
+        <div class="buyer-actions">
+          <div id="buyer-waiting" class="waiting-text" style="display:none;">Waiting for seller response…</div>
+          <div id="buyer-turn-actions" style="display:none;">
+            <div class="seller-actions-label" style="text-align:center;margin-bottom:8px;">Seller countered — your turn</div>
+            <button class="btn-accept-full" id="btn-buyer-accept" style="margin-bottom:8px;">Accept &amp; Pay</button>
+            <div class="btn-row">
+              <button class="btn-decline-full" id="btn-buyer-decline">Decline</button>
+              <button class="btn-counter-full" id="btn-buyer-counter">Counter</button>
+            </div>
+          </div>
+          <div class="error-msg" id="buyer-error"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a class="nav-link" href="clubo-v2-04-home.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div></a>
+    <a class="nav-link" href="clubo-v2-09-sell.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="4" width="12" height="12" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v6M7 10h6" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Sell</div></div></a>
+    <a class="nav-link" href="clubo-v2-15-balance.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M10 7v1.5M10 11.5V13M8 9.5c0-.83.67-1.5 2-1.5s2 .5 2 1.5S11 11 10 11s-2 .5-2 1.5S9 14 10 14" stroke="rgba(255,255,255,.25)" stroke-width="1.2" stroke-linecap="round"/></svg><div class="nav-lbl">Balance</div></div></a>
+    <a class="nav-link" href="clubo-v2-08a-tickets-locked.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="11" rx="2" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M7 5V4a3 3 0 016 0v1" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Tickets</div></div></a>
+    <a class="nav-link" href="clubo-v2-12-profile.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7.5" r="3" stroke="rgba(255,255,255,.25)" stroke-width="1.3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round"/></svg><div class="nav-lbl">Profile</div></div></a>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
+<script src="transition.js" defer></script>
+<script>
+var stripe = Stripe('pk_test_51Ra0YJRwwM9yytUgFLzXpPyEkrMrCXU1SXmyEEfnHRrMISlbRaVa8NNqKktT1L1amqFCLLwBYH1g3d30x9gN8oFl00vJpxhUFi');
+var currentSellOffer = null, amSeller = false;
+var buyOrder = null, qty = 1, maxQty = 1;
+
+window.addEventListener('DOMContentLoaded', async function() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var buyOrderId = params.get('buyOrderId');
+    var sellOfferId = params.get('sellOfferId');
+
+    if (sellOfferId) {
+      await loadThread(sellOfferId);
+    } else if (buyOrderId) {
+      await loadMakeOfferView(buyOrderId);
+    } else {
+      alert('Missing parameters');
+      history.back();
+    }
+  } catch(e) {
+    console.error(e);
+    alert('Could not load: ' + e.message);
+    history.back();
+  }
+});
+
+// ── Mode A: seller makes initial offer ──────────────────────────────────────
+
+async function loadMakeOfferView(buyOrderId) {
+  buyOrder = await ClubAuth.getBuyOrder(buyOrderId);
+  var events = { mondays: 'Mondays · Fabrik Madrid', istar: 'Istar · Istar Madrid' };
+  document.getElementById('boc-event').textContent = events[buyOrder.event] || buyOrder.eventLabel || buyOrder.event;
+  document.getElementById('boc-qty').textContent = buyOrder.quantity + ' ticket' + (buyOrder.quantity > 1 ? 's' : '') + ' requested';
+  document.getElementById('boc-hint').textContent = 'Buyer offering €' + Math.floor(buyOrder.pricePerTicket / 100) + ' — you can charge more';
+  document.getElementById('boc-price').textContent = '€' + Math.floor(buyOrder.pricePerTicket / 100);
+  maxQty = buyOrder.quantity;
+  qty = 1;
+
+  // Pre-fill price at buyer's offer
+  var priceField = document.getElementById('ask-price-field');
+  priceField.value = (buyOrder.pricePerTicket / 100).toFixed(0);
+  document.getElementById('ask-price-hint').textContent = 'Min €' + Math.floor(buyOrder.pricePerTicket / 100) + ' (buyer\'s offer) — charge more to make profit';
+  updateTotal();
+
+  document.getElementById('qty-minus').addEventListener('click', function() { if(qty>1){qty--;updateQtyDisplay();} });
+  document.getElementById('qty-plus').addEventListener('click', function() { if(qty<maxQty){qty++;updateQtyDisplay();} });
+  priceField.addEventListener('input', updateTotal);
+  document.getElementById('submit-offer-btn').addEventListener('click', submitSellOffer);
+  showView('make');
+}
+
+function updateQtyDisplay() {
+  document.getElementById('qty-display').textContent = qty;
+  updateTotal();
+}
+
+function updateTotal() {
+  var priceEuros = parseFloat(document.getElementById('ask-price-field').value) || 0;
+  document.getElementById('total-display').textContent = '€' + (priceEuros * qty).toFixed(2);
+}
+
+async function submitSellOffer() {
+  var btn = document.getElementById('submit-offer-btn');
+  var errEl = document.getElementById('make-error');
+  errEl.textContent = '';
+  var priceEuros = parseFloat(document.getElementById('ask-price-field').value);
+  if (isNaN(priceEuros) || priceEuros <= 0) { errEl.textContent = 'Enter a valid price'; return; }
+  var priceCents = Math.round(priceEuros * 100);
+  if (priceCents < buyOrder.pricePerTicket) {
+    errEl.textContent = 'Price must be at least €' + Math.floor(buyOrder.pricePerTicket / 100);
+    return;
+  }
+  btn.disabled = true;
+  document.getElementById('submit-label').innerHTML = '<div class="spinner"></div>';
+  try {
+    var sellOffer = await ClubAuth.createSellOffer(buyOrder.id, priceCents, qty);
+    currentSellOffer = sellOffer;
+    amSeller = true;
+    await renderThread(currentSellOffer);
+    showView('thread');
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not send offer';
+    btn.disabled = false;
+    document.getElementById('submit-label').textContent = 'Send Offer';
+  }
+}
+
+// ── Mode B: view existing sell offer thread ──────────────────────────────────
+
+async function loadThread(sellOfferId) {
+  var sellOffer = await ClubAuth.getSellOffer(sellOfferId);
+  currentSellOffer = sellOffer;
+  var me = await ClubAuth.fetchMe();
+  amSeller = me && (sellOffer.sellerId === me.id);
+  await renderThread(currentSellOffer);
+  showView('thread');
+}
+
+// ── Thread rendering ──────────────────────────────────────────────────────────
+
+async function renderThread(offer) {
+  var events = { mondays: 'Mondays · Fabrik Madrid', istar: 'Istar · Istar Madrid' };
+  var eventLabel = offer.buyOrder
+    ? (events[offer.buyOrder.event] || offer.buyOrder.eventLabel || offer.buyOrder.event)
+    : 'Offer';
+  document.getElementById('thread-title').textContent = eventLabel;
+  document.getElementById('thread-meta').textContent = amSeller ? 'With buyer' : 'With seller';
+
+  var chip = document.getElementById('thread-status-chip');
+  chip.className = 'status-chip ' + offer.status.toLowerCase();
+  chip.textContent = offer.status.charAt(0) + offer.status.slice(1).toLowerCase();
+
+  var thread = document.getElementById('offer-thread');
+  thread.innerHTML = '';
+  (offer.events || []).forEach(function(ev) {
+    var isMine = (ev.actor === 'seller') === amSeller;
+    var msg = document.createElement('div');
+    if (ev.action === 'OFFER' || ev.action === 'COUNTER') {
+      msg.className = 'msg ' + (isMine ? 'mine' : 'theirs');
+      var sender = document.createElement('div');
+      sender.className = 'msg-sender';
+      sender.textContent = isMine ? 'You' : (amSeller ? 'Buyer' : 'Seller');
+      var bubble = document.createElement('div');
+      bubble.className = 'msg-bubble';
+      bubble.innerHTML = '<div class="msg-price">€' + (ev.price / 100).toFixed(0)
+        + '<span style="font-size:14px;font-weight:300;font-family:DM Sans,sans-serif;color:rgba(255,255,255,.4);"> / ticket</span></div>'
+        + '<div class="msg-detail">' + ev.quantity + ' ticket' + (ev.quantity > 1 ? 's' : '')
+        + ' · €' + ((ev.price * ev.quantity) / 100).toFixed(2) + ' total</div>';
+      var time = document.createElement('div');
+      time.className = 'msg-time';
+      time.textContent = ev.action === 'OFFER' ? 'Initial offer' : 'Counter offer';
+      msg.appendChild(sender);
+      msg.appendChild(bubble);
+      msg.appendChild(time);
+    } else {
+      msg.className = 'msg system';
+      var bubble = document.createElement('div');
+      bubble.className = 'msg-bubble';
+      var labels = { ACCEPT: 'Accepted', DECLINE: 'Declined', ACCEPT_PAY: 'Accepted & paid' };
+      bubble.innerHTML = '<div class="msg-system-text">' + (labels[ev.action] || ev.action) + ' by ' + ev.actor + '</div>';
+      msg.appendChild(bubble);
+    }
+    thread.appendChild(msg);
+  });
+  setTimeout(function(){ thread.scrollTop = thread.scrollHeight; }, 50);
+
+  var isActive = ['PENDING', 'COUNTERED'].includes(offer.status);
+  var isMyTurn = (offer.currentActor === 'seller' && amSeller) || (offer.currentActor === 'buyer' && !amSeller);
+  var canCounter = offer.counterCount < 3;
+
+  document.getElementById('seller-action-bar').style.display = 'none';
+  document.getElementById('buyer-action-bar').style.display = 'none';
+  if (!isActive) return;
+
+  if (amSeller) {
+    document.getElementById('seller-action-bar').style.display = 'block';
+    document.getElementById('seller-actions-label').textContent = isMyTurn ? 'Your turn to respond' : 'Waiting for buyer…';
+    document.getElementById('btn-accept').disabled = !isMyTurn;
+    document.getElementById('btn-decline').disabled = !isMyTurn;
+    document.getElementById('btn-counter').disabled = !isMyTurn || !canCounter;
+    if (!canCounter) document.getElementById('btn-counter').textContent = 'No counters left';
+    document.getElementById('counter-hint').textContent = canCounter ? ((3 - offer.counterCount) + ' counter' + (3 - offer.counterCount === 1 ? '' : 's') + ' remaining') : '';
+    if (canCounter) document.getElementById('counter-input').value = (offer.pricePerTicket / 100).toFixed(0);
+    document.getElementById('btn-accept').onclick = acceptOffer;
+    document.getElementById('btn-decline').onclick = declineOffer;
+    document.getElementById('btn-counter').onclick = function() { document.getElementById('counter-panel').classList.toggle('open'); };
+    document.getElementById('btn-send-counter').onclick = sendSellerCounter;
+  } else {
+    document.getElementById('buyer-action-bar').style.display = 'block';
+    if (!isMyTurn) {
+      document.getElementById('buyer-waiting').style.display = 'block';
+      document.getElementById('buyer-turn-actions').style.display = 'none';
+    } else {
+      document.getElementById('buyer-waiting').style.display = 'none';
+      document.getElementById('buyer-turn-actions').style.display = 'block';
+      document.getElementById('btn-buyer-accept').disabled = false;
+      document.getElementById('btn-buyer-counter').disabled = !canCounter;
+      if (!canCounter) document.getElementById('btn-buyer-counter').textContent = 'No counters left';
+      if (canCounter) document.getElementById('buyer-counter-input').value = (offer.pricePerTicket / 100).toFixed(0);
+      document.getElementById('buyer-counter-hint').textContent = canCounter ? ((3 - offer.counterCount) + ' counter' + (3 - offer.counterCount === 1 ? '' : 's') + ' remaining') : '';
+      document.getElementById('btn-buyer-accept').onclick = acceptOffer;
+      document.getElementById('btn-buyer-decline').onclick = declineOffer;
+      document.getElementById('btn-buyer-counter').onclick = function() { document.getElementById('buyer-counter-panel').classList.toggle('open'); };
+      document.getElementById('btn-buyer-send-counter').onclick = sendBuyerCounter;
+    }
+  }
+}
+
+async function acceptOffer() {
+  var btn = amSeller ? document.getElementById('btn-accept') : document.getElementById('btn-buyer-accept');
+  var errEl = amSeller ? document.getElementById('thread-error') : document.getElementById('buyer-error');
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
+  try {
+    var result = await ClubAuth.acceptSellOffer(currentSellOffer.id);
+    if (result.status === 'PAID' || result.status === 'ACCEPTED') {
+      window.location.href = 'clubo-v2-08a-tickets-locked.html';
+    } else if (result.status === 'REQUIRES_ACTION') {
+      var confirmResult = await stripe.confirmCardPayment(result.clientSecret);
+      if (confirmResult.error) {
+        errEl.textContent = confirmResult.error.message;
+        btn.disabled = false;
+        btn.textContent = amSeller ? 'Accept & Charge Buyer' : 'Accept & Pay';
+        return;
+      }
+      await ClubAuth.confirmSellOfferPayment(currentSellOffer.id, confirmResult.paymentIntent.id);
+      window.location.href = 'clubo-v2-08a-tickets-locked.html';
+    } else {
+      // Re-render with updated state
+      var updated = await ClubAuth.getSellOffer(currentSellOffer.id);
+      currentSellOffer = updated;
+      await renderThread(currentSellOffer);
+    }
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not accept';
+    btn.disabled = false;
+    btn.textContent = amSeller ? 'Accept & Charge Buyer' : 'Accept & Pay';
+  }
+}
+
+async function declineOffer() {
+  var errEl = amSeller ? document.getElementById('thread-error') : document.getElementById('buyer-error');
+  try {
+    await ClubAuth.declineSellOffer(currentSellOffer.id);
+    var updated = await ClubAuth.getSellOffer(currentSellOffer.id);
+    currentSellOffer = updated;
+    await renderThread(currentSellOffer);
+  } catch(e) { errEl.textContent = e.message || 'Could not decline'; }
+}
+
+async function sendSellerCounter() {
+  var input = document.getElementById('counter-input');
+  var errEl = document.getElementById('thread-error');
+  errEl.textContent = '';
+  var priceCents = Math.round(parseFloat(input.value) * 100);
+  if (isNaN(priceCents) || priceCents <= 0) { errEl.textContent = 'Enter a valid price'; return; }
+  var buyerMin = currentSellOffer.buyOrder ? currentSellOffer.buyOrder.pricePerTicket : 0;
+  if (priceCents < buyerMin) { errEl.textContent = 'Minimum €' + Math.floor(buyerMin / 100); return; }
+  var btn = document.getElementById('btn-send-counter');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await ClubAuth.counterSellOffer(currentSellOffer.id, priceCents, currentSellOffer.quantity);
+    var updated = await ClubAuth.getSellOffer(currentSellOffer.id);
+    currentSellOffer = updated;
+    document.getElementById('counter-panel').classList.remove('open');
+    await renderThread(currentSellOffer);
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not send counter';
+    btn.disabled = false; btn.textContent = 'Send Counter Offer';
+  }
+}
+
+async function sendBuyerCounter() {
+  var input = document.getElementById('buyer-counter-input');
+  var errEl = document.getElementById('buyer-error');
+  errEl.textContent = '';
+  var priceCents = Math.round(parseFloat(input.value) * 100);
+  if (isNaN(priceCents) || priceCents <= 0) { errEl.textContent = 'Enter a valid price'; return; }
+  var btn = document.getElementById('btn-buyer-send-counter');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    await ClubAuth.counterSellOffer(currentSellOffer.id, priceCents, currentSellOffer.quantity);
+    var updated = await ClubAuth.getSellOffer(currentSellOffer.id);
+    currentSellOffer = updated;
+    document.getElementById('buyer-counter-panel').classList.remove('open');
+    await renderThread(currentSellOffer);
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not send counter';
+    btn.disabled = false; btn.textContent = 'Send Counter Offer';
+  }
+}
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  var el = document.getElementById('view-' + name);
+  if (el) el.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -59,6 +59,19 @@
 .seller-name{font-size:12px;font-weight:400;color:rgba(255,255,255,.6);}
 .seller-trades{font-size:10px;font-weight:300;color:rgba(255,255,255,.22);}
 .view-btn{height:34px;padding:0 12px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:9px;font-size:11px;font-weight:500;color:rgba(255,255,255,.65);flex-shrink:0;white-space:nowrap;display:flex;align-items:center;justify-content:center;}
+
+/* Buy Requests */
+.section-divider{display:flex;align-items:center;gap:10px;margin:18px 0 12px;flex-shrink:0;}
+.section-divider-line{flex:1;height:1px;background:rgba(255,255,255,.07);}
+.section-divider-lbl{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.22);}
+.buy-request-card{background:#0D0D1C;border:1px solid rgba(160,140,255,.14);border-radius:15px;padding:12px 12px 12px 14px;display:flex;align-items:center;gap:10px;position:relative;flex-shrink:0;}
+.buy-request-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(160,140,255,.12),transparent);}
+.br-info{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;}
+.br-qty{font-size:13px;font-weight:500;color:rgba(255,255,255,.75);}
+.br-hint{font-size:10px;font-weight:300;color:rgba(255,255,255,.3);}
+.br-price{font-family:"Fraunces",serif;font-size:18px;font-weight:700;color:rgba(200,190,255,.9);letter-spacing:-.02em;flex-shrink:0;text-align:right;}
+.br-price-sub{font-size:9px;font-weight:300;color:rgba(255,255,255,.3);text-align:right;margin-top:1px;}
+.offer-btn{height:34px;padding:0 12px;background:rgba(160,140,255,.1);border:1px solid rgba(160,140,255,.25);border-radius:9px;font-size:11px;font-weight:500;color:rgba(200,190,255,.9);flex-shrink:0;white-space:nowrap;display:flex;align-items:center;justify-content:center;text-decoration:none;}
 </style>
 </head>
 <body>
@@ -205,31 +218,69 @@ window.addEventListener('DOMContentLoaded', function(){
     scroll.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(239,68,68,.5);font-size:13px;font-weight:300;">Could not load listings. Is the server running?</div>';
   }
 
-  ClubAuth.getListings('istar').then(function(listings) {
+  Promise.all([
+    ClubAuth.getListings('istar'),
+    ClubAuth.getBuyOrders('istar').catch(function(){ return []; }),
+    ClubAuth.fetchMe().catch(function(){ return null; }),
+  ]).then(function(results) {
+    var listings = results[0];
+    var buyOrders = results[1] || [];
+    var me = results[2];
+
     var active = listings.filter(function(l){ return l.status === 'active'; });
     var sold   = listings.filter(function(l){ return l.status === 'sold'; });
 
     var soldHtml   = sold.map(function(l, i){ return buildCard(l, i, true); }).join('');
     var activeHtml = active.map(function(l, i){ return buildCard(l, i, false); }).join('');
 
-    if (active.length === 0 && sold.length === 0) { renderEmpty(); return; }
-
-    scroll.innerHTML = soldHtml + activeHtml;
-
-    if (sold.length > 0) {
-      var firstActive = scroll.querySelector('.ticket-card:not(.sold-card)');
-      if (firstActive) firstActive.scrollIntoView();
+    if (active.length === 0 && sold.length === 0) { renderEmpty(); }
+    else {
+      scroll.innerHTML = soldHtml + activeHtml;
+      if (sold.length > 0) {
+        var firstActive = scroll.querySelector('.ticket-card:not(.sold-card)');
+        if (firstActive) firstActive.scrollIntoView();
+      }
+      if(countEl) countEl.innerHTML = '<strong>' + active.length + '</strong> tickets available';
+      scroll.querySelectorAll('.ticket-card[data-listing-id]').forEach(function(card){
+        var link = card.querySelector('.view-btn');
+        if (!link) return;
+        link.addEventListener('click', function(){
+          localStorage.setItem('clubo_viewing_listing', card.getAttribute('data-listing-id'));
+        });
+      });
     }
 
-    if(countEl) countEl.innerHTML = '<strong>' + active.length + '</strong> tickets available';
-
-    scroll.querySelectorAll('.ticket-card[data-listing-id]').forEach(function(card){
-      var link = card.querySelector('.view-btn');
-      if (!link) return;
-      link.addEventListener('click', function(){
-        localStorage.setItem('clubo_viewing_listing', card.getAttribute('data-listing-id'));
-      });
-    });
+    // Buy requests section
+    var openRequests = buyOrders.filter(function(r){ return r.status === 'OPEN'; });
+    var divider = '<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-lbl">Buy Requests</div><div class="section-divider-line"></div></div>';
+    var meId = me && me.id;
+    var requestsHtml;
+    if (openRequests.length === 0) {
+      requestsHtml = '<div style="text-align:center;padding:18px 0 8px;color:rgba(255,255,255,.2);font-size:12px;font-weight:300;">No buy requests right now.</div>';
+    } else {
+      requestsHtml = openRequests.map(function(r) {
+        var av = ClubAuth.avatarFor(r.buyer && r.buyer.phone ? r.buyer.phone : r.id);
+        var isOwner = meId && r.buyerId === meId;
+        var offerBtn = isOwner
+          ? '<div style="height:34px;padding:0 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;font-size:10px;color:rgba(255,255,255,.3);display:flex;align-items:center;">Your request</div>'
+          : '<a class="offer-btn" href="clubo-v2-sell-offer.html?buyOrderId=' + escHtml(r.id) + '">Make an offer</a>';
+        return '<div class="buy-request-card">'
+          + '<div class="seller-avatar" style="background:' + av.bg + ';color:' + av.color + ';">' + av.initials + '</div>'
+          + '<div class="br-info">'
+          + '<div class="br-qty">Looking for ' + r.quantity + ' ticket' + (r.quantity > 1 ? 's' : '') + '</div>'
+          + '<div class="br-hint">Seller can propose a higher price</div>'
+          + '</div>'
+          + '<div style="text-align:right;flex-shrink:0;margin-right:8px;">'
+          + '<div class="br-price">€' + Math.floor(r.pricePerTicket / 100) + '</div>'
+          + '<div class="br-price-sub">/ ticket</div>'
+          + '</div>'
+          + offerBtn
+          + '</div>';
+      }).join('');
+    }
+    var section = document.createElement('div');
+    section.innerHTML = divider + requestsHtml;
+    scroll.appendChild(section);
 
   }).catch(function(err) {
     console.error('Listings error:', err);

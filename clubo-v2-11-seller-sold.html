@@ -105,6 +105,10 @@
       <div class="section-lbl">Sold Orders <span class="section-count" id="orders-count">—</span></div>
       <div id="orders-container"><div class="empty">No sales yet.</div></div>
     </div>
+    <div class="section-block">
+      <div class="section-lbl">My Sell Offers <span class="section-count" id="sell-offers-count" style="display:none;"></span></div>
+      <div id="sell-offers-container"><div class="empty">No active sell offers.</div></div>
+    </div>
   </div>
   <div class="bottom-nav">
     <a class="nav-link" href="clubo-v2-04-home.html"><div class="nav-item"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="rgba(255,255,255,.25)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="nav-lbl">Home</div></div></a>
@@ -165,9 +169,11 @@ async function loadAll() {
     var rest = await Promise.all([
       ClubAuth.apiFetch('/offers/seller'),
       ClubAuth.apiFetch('/orders/seller'),
+      ClubAuth.getMySellOffers().catch(function(){ return []; }),
     ]);
     renderOffers(rest[0].offers || []);
     renderOrders(rest[1].orders || []);
+    renderSellOffers(rest[2] || []);
   } catch(e) { console.error('Load error:', e); }
 }
 
@@ -382,6 +388,29 @@ async function sendCounter() {
     errEl.textContent = e.message || 'Could not send counter';
     btn.disabled = false; btn.textContent = 'Send Counter';
   }
+}
+
+function renderSellOffers(sellOffers) {
+  var el = document.getElementById('sell-offers-container');
+  var countEl = document.getElementById('sell-offers-count');
+  var active = sellOffers.filter(function(s){ return ['PENDING','COUNTERED','ACCEPTED'].includes(s.status); });
+  if (active.length > 0) { countEl.textContent = active.length; countEl.style.display = ''; }
+  else { countEl.style.display = 'none'; }
+  if (!active.length) { el.innerHTML = '<div class="empty">No active sell offers.</div>'; return; }
+  var statusLabels = { PENDING: 'pending', COUNTERED: 'countered', ACCEPTED: 'accepted' };
+  el.innerHTML = active.map(function(s) {
+    var eventLabel = s.buyOrder
+      ? (s.buyOrder.event === 'mondays' ? 'Mondays' : s.buyOrder.event === 'istar' ? 'Istar' : (s.buyOrder.eventLabel || 'Event'))
+      : 'Event';
+    var qty = s.quantity || (s.buyOrder && s.buyOrder.quantity) || 1;
+    return '<div class="offer-card" onclick="window.location.href=\'clubo-v2-sell-offer.html?sellOfferId=' + s.id + '\'">'
+      + '<div class="oc-top"><div class="oc-buyer">' + esc(eventLabel) + '</div>'
+      + '<span class="oc-chip ' + (statusLabels[s.status] || 'waiting') + '">' + s.status.charAt(0) + s.status.slice(1).toLowerCase() + '</span></div>'
+      + '<div class="oc-detail"><div class="oc-listing">' + qty + ' ticket' + (qty > 1 ? 's' : '') + '</div>'
+      + '<div><div class="oc-price">€' + Math.floor(s.pricePerTicket / 100) + '</div>'
+      + '<div class="oc-qty">/ ticket</div></div></div>'
+      + '</div>';
+  }).join('');
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }

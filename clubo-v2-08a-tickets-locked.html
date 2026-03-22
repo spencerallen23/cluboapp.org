@@ -35,6 +35,16 @@
 
 .section-label{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.18);margin:20px 0 10px;}
 .empty-state{text-align:center;padding:60px 0;color:rgba(255,255,255,.2);font-size:13px;font-weight:300;line-height:1.8;}
+.br-card{background:#0D0D1C;border:1px solid rgba(160,140,255,.15);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+.br-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.br-card-event{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(200,190,255,.5);}
+.br-card-badge{font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.2);color:rgba(250,204,21,.9);}
+.br-card-detail{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.br-card-qty{font-size:13px;font-weight:500;color:rgba(255,255,255,.75);}
+.br-card-price{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:rgba(200,190,255,.9);}
+.br-card-btns{display:flex;gap:8px;}
+.btn-view-offers{flex:2;height:36px;background:rgba(160,140,255,.1);border:1px solid rgba(160,140,255,.25);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:rgba(200,190,255,.9);cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;}
+.btn-cancel-req{flex:1;height:36px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:400;color:rgba(239,68,68,.7);cursor:pointer;}
 </style>
 </head>
 <body>
@@ -52,6 +62,7 @@
       </div>
     </div>
     <div id="ticketsList"></div>
+    <div id="buyRequestsList"></div>
   </div>
 
   <div class="bottom-nav">
@@ -248,7 +259,54 @@ function loadOrders() {
   });
 }
 
-window.addEventListener('DOMContentLoaded', loadOrders);
+function loadBuyRequests() {
+  var container = document.getElementById('buyRequestsList');
+  if (!container) return;
+
+  ClubAuth.getMyBuyOrders().then(function(buyOrders) {
+    var open = (buyOrders || []).filter(function(r){ return r.status === 'OPEN'; });
+    if (open.length === 0) { container.innerHTML = ''; return; }
+
+    var html = '<div class="section-label">My Requests</div>';
+    open.forEach(function(r) {
+      var eventLabel = r.event === 'mondays' ? 'Mondays' : r.event === 'istar' ? 'Istar' : (r.eventLabel || r.event);
+      var offerCount = (r.sellOffers || []).filter(function(s){ return ['PENDING','COUNTERED'].includes(s.status); }).length;
+      var badgeHtml = offerCount > 0
+        ? '<span class="br-card-badge">' + offerCount + ' offer' + (offerCount > 1 ? 's' : '') + '</span>'
+        : '<span class="br-card-badge" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.3);">Waiting</span>';
+
+      var firstOffer = r.sellOffers && r.sellOffers.find(function(s){ return ['PENDING','COUNTERED'].includes(s.status); });
+      var viewHref = firstOffer
+        ? 'clubo-v2-sell-offer.html?sellOfferId=' + encodeURIComponent(firstOffer.id)
+        : '#';
+
+      html += '<div class="br-card" data-id="' + r.id + '">'
+        + '<div class="br-card-top"><div class="br-card-event">' + eventLabel + '</div>' + badgeHtml + '</div>'
+        + '<div class="br-card-detail">'
+        + '<div class="br-card-qty">' + r.quantity + ' ticket' + (r.quantity > 1 ? 's' : '') + ' requested</div>'
+        + '<div class="br-card-price">€' + Math.floor(r.pricePerTicket / 100) + ' <span style="font-size:10px;font-weight:300;font-family:DM Sans,sans-serif;color:rgba(255,255,255,.3);">/ ticket</span></div>'
+        + '</div>'
+        + '<div class="br-card-btns">'
+        + '<a class="btn-view-offers" href="' + viewHref + '">View Offers</a>'
+        + '<button class="btn-cancel-req">Cancel</button>'
+        + '</div>'
+        + '</div>';
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll('.btn-cancel-req').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = btn.closest('[data-id]').getAttribute('data-id');
+        if (!confirm('Cancel this buy request?')) return;
+        ClubAuth.cancelBuyOrder(id).then(function() { loadBuyRequests(); }).catch(function(err) { alert(err.message); });
+      });
+    });
+  }).catch(function() {
+    // fail silently — section just stays hidden
+  });
+}
+
+window.addEventListener('DOMContentLoaded', function() { loadOrders(); loadBuyRequests(); });
 </script>
 </body>
 </html>

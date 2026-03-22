@@ -293,6 +293,38 @@
     return { bg: GRADIENTS[idx], color: AVATAR_COLORS[idx], initials: initials };
   }
 
+  // ── Buy Orders API ─────────────────────────────────────────────────────────
+  async function createBuyOrder(event, eventLabel, quantity, pricePerTicket, stripeSetupIntentId, stripePaymentMethodId) {
+    var body = { event, quantity, pricePerTicket, stripeSetupIntentId, stripePaymentMethodId };
+    if (eventLabel) body.eventLabel = eventLabel;
+    var data = await apiFetch('/buy-orders', { method: 'POST', body: JSON.stringify(body) });
+    return data.buyOrder;
+  }
+  async function getMyBuyOrders()    { return (await apiFetch('/buy-orders/mine')).buyOrders; }
+  async function getBuyOrders(event) {
+    var path = '/buy-orders' + (event ? '?event=' + encodeURIComponent(event) : '');
+    return (await apiFetch(path)).buyOrders;
+  }
+  async function cancelBuyOrder(id)  { return apiFetch('/buy-orders/' + id, { method: 'DELETE' }); }
+  async function getBuyOrder(id)     { return (await apiFetch('/buy-orders/' + id)).buyOrder; }
+
+  // ── Sell Offers API ────────────────────────────────────────────────────────
+  async function createSellOffer(buyOrderId, pricePerTicket, quantity) {
+    var data = await apiFetch('/buy-orders/' + buyOrderId + '/sell-offer', { method: 'POST', body: JSON.stringify({ pricePerTicket, quantity }) });
+    return data.sellOffer;
+  }
+  async function getMySellOffers()    { return (await apiFetch('/sell-offers/mine')).sellOffers; }
+  async function getBuyerSellOffers() { return (await apiFetch('/sell-offers/buyer')).sellOffers; }
+  async function getSellOffer(id)     { return (await apiFetch('/sell-offers/' + id)).sellOffer; }
+  async function counterSellOffer(id, pricePerTicket, quantity) {
+    return apiFetch('/sell-offers/' + id + '/counter', { method: 'POST', body: JSON.stringify({ pricePerTicket, quantity }) });
+  }
+  async function acceptSellOffer(id)  { return apiFetch('/sell-offers/' + id + '/accept',  { method: 'POST' }); }
+  async function declineSellOffer(id) { return apiFetch('/sell-offers/' + id + '/decline', { method: 'POST' }); }
+  async function confirmSellOfferPayment(id, paymentIntentId) {
+    return apiFetch('/sell-offers/' + id + '/confirm-payment', { method: 'POST', body: JSON.stringify({ paymentIntentId }) });
+  }
+
   // ── Auth gate ─────────────────────────────────────────────────────────────
 
   function requireAuth() {
@@ -354,6 +386,23 @@
     // Ambassador
     applyAmbassador:     applyAmbassador,
     getAmbassadorStatus: getAmbassadorStatus,
+
+    // Buy Orders
+    createBuyOrder:   createBuyOrder,
+    getMyBuyOrders:   getMyBuyOrders,
+    getBuyOrders:     getBuyOrders,
+    cancelBuyOrder:   cancelBuyOrder,
+    getBuyOrder:      getBuyOrder,
+
+    // Sell Offers
+    createSellOffer:          createSellOffer,
+    getMySellOffers:          getMySellOffers,
+    getBuyerSellOffers:       getBuyerSellOffers,
+    getSellOffer:             getSellOffer,
+    counterSellOffer:         counterSellOffer,
+    acceptSellOffer:          acceptSellOffer,
+    declineSellOffer:         declineSellOffer,
+    confirmSellOfferPayment:  confirmSellOfferPayment,
 
     // Formatting
     formatPrice:  formatPrice,
