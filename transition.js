@@ -37,8 +37,13 @@
   function navigate(href){
     if(!href || href===file()) return;
     var screen = document.querySelector('.screen');
+    var lh = document.getElementById('listingsHeader');
     if(screen){
       screen.style.cssText += ';transition:opacity .13s ease,transform .13s ease!important;opacity:0!important;transform:translateY(-4px)!important;';
+    } else if(lh){
+      lh.style.cssText += ';transition:opacity .13s ease!important;opacity:0!important;';
+      var ts = document.getElementById('ticketsScroll');
+      if(ts) ts.style.cssText += ';transition:opacity .13s ease!important;opacity:0!important;';
     } else {
       // splash / processing — fade whole phone but nav was already gone
       var phone = document.querySelector('.phone');
