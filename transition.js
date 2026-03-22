@@ -119,41 +119,4 @@
     navigate(href);
   }, true);
 
-  // ── Swipe between nav tabs ────────────────────────────────────────────────
-  var NAV_ORDER = [
-    'clubo-v2-04-home.html',
-    'clubo-v2-09-sell.html',
-    'clubo-v2-15-balance.html',
-    'clubo-v2-08a-tickets-locked.html',
-    'clubo-v2-12-profile.html',
-  ];
-
-  var _sx = 0, _sy = 0, _st = null;
-
-  document.addEventListener('touchstart', function(e){
-    _sx = e.touches[0].clientX;
-    _sy = e.touches[0].clientY;
-    _st = e.target;
-  }, { passive: true });
-
-  document.addEventListener('touchend', function(e){
-    var dx = e.changedTouches[0].clientX - _sx;
-    var dy = e.changedTouches[0].clientY - _sy;
-    // Must be clearly horizontal and at least 60px
-    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.75) return;
-    // Don't fire inside inputs or horizontally-scrollable elements
-    var t = _st;
-    while (t && t !== document.body) {
-      var tag = t.tagName;
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
-      if (t.scrollWidth > t.clientWidth + 4) return;
-      t = t.parentElement;
-    }
-    var f = file();
-    var idx = NAV_ORDER.indexOf(f);
-    if (idx === -1) return;
-    if (dx < 0 && idx < NAV_ORDER.length - 1) navigate(NAV_ORDER[idx + 1]);
-    if (dx > 0 && idx > 0) navigate(NAV_ORDER[idx - 1]);
-  }, { passive: true });
-
 })();

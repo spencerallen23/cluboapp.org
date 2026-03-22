@@ -9,10 +9,10 @@
 <style>
 @keyframes pulse{0%,100%{box-shadow:0 0 6px rgba(74,222,128,.7)}50%{box-shadow:0 0 12px rgba(74,222,128,.3)}}
 
-/* Fixed header block */
+/* Header — flex-shrink:0 so it takes its natural height */
 .listings-header{
-  position:absolute;top:0;left:0;right:0;
-  background:#08080F;z-index:20;
+  flex-shrink:0;
+  background:#08080F;
   padding-top:env(safe-area-inset-top);
   border-bottom:1px solid rgba(255,255,255,.06);
 }
@@ -33,12 +33,12 @@
 .sort-btn{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:5px 9px;}
 .sort-btn span{font-size:10px;font-weight:500;color:rgba(255,255,255,.5);letter-spacing:.04em;}
 
-/* Scrollable list — top and bottom set by JS after render */
+/* Scrollable list — fills remaining space between header and nav */
 .tickets-scroll{
-  position:absolute;left:0;right:0;
+  flex:1;
   overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
   display:flex;flex-direction:column;gap:9px;
-  padding:12px 22px;
+  padding:12px 22px calc(86px + env(safe-area-inset-bottom));
   opacity:0;transition:opacity .2s ease;
 }
 .tickets-scroll.ready{opacity:1;}
@@ -128,24 +128,10 @@
 <script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
 <script src="transition.js" defer></script>
 <script>
-// Position scroll area below fixed header
+// Show scroll area once DOM is ready (layout handled entirely by flexbox)
 window.addEventListener('DOMContentLoaded', function(){
-  function adjust(){
-    var header = document.getElementById('listingsHeader');
-    var nav    = document.querySelector('.bottom-nav');
-    var scroll = document.getElementById('ticketsScroll');
-    if (!header || !nav || !scroll) return;
-    scroll.style.top    = header.getBoundingClientRect().height + 'px';
-    scroll.style.bottom = nav.getBoundingClientRect().height + 'px';
-    scroll.classList.add('ready');
-  }
-  adjust();
-  window.addEventListener('resize', adjust);
-  window.addEventListener('load', adjust);
-  if (window.ResizeObserver) {
-    var ro = new ResizeObserver(adjust);
-    ro.observe(document.getElementById('listingsHeader'));
-  }
+  var scroll = document.getElementById('ticketsScroll');
+  if (scroll) scroll.classList.add('ready');
 });
 
 // Live countdown to 23:30
