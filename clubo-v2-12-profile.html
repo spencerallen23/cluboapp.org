@@ -69,7 +69,7 @@
         <div class="avatar" id="profileAvatar">—</div>
         <div>
           <div class="pname" id="profileName">Loading…</div>
-          <div class="pdesc">Verified · Madrid network</div>
+          <div class="pdesc">Verified member</div>
         </div>
       </div>
       <div class="stats">
@@ -229,8 +229,8 @@ window.addEventListener('DOMContentLoaded', async function(){
 
     var displayName = [stats.firstName, stats.lastName].filter(Boolean).join(' ') || (stats.phone ? stats.phone.slice(-4) : 'You');
     document.getElementById('profileName').textContent = displayName;
-    document.getElementById('statTrades').textContent   = '—';
-    document.getElementById('statDisputes').textContent = '—';
+    document.getElementById('statTrades').textContent   = stats.completedTrades != null ? stats.completedTrades : '—';
+    document.getElementById('statDisputes').textContent = stats.disputeCount     != null ? stats.disputeCount     : '—';
     document.getElementById('statTrust').textContent    = stats.cluboBalance != null ? ('€' + (stats.cluboBalance / 100).toFixed(0)) : '—';
     // Relabel the third stat to Balance
     var statLabels = document.querySelectorAll('.stat-lbl');

@@ -162,7 +162,9 @@ window.addEventListener('DOMContentLoaded', async function() {
 
     stripeInstance = Stripe(STRIPE_PK);
 
-    // Call /orders/:id/pay to create the PaymentIntent
+    // Call /orders/:id/pay to create the PaymentIntent.
+    // Only called when the card path is active — must not be called before a
+    // balance payment attempt or the order will already be PAYMENT_PENDING.
     var token   = ClubAuth.getToken();
     var payRes  = await fetch(API + '/orders/' + orderId + '/pay', {
       method:  'POST',
@@ -192,23 +194,39 @@ window.addEventListener('DOMContentLoaded', async function() {
     paymentElement.mount('#payment-element');
   }
 
-  // Init Stripe immediately (unless balance covers it fully)
-  try {
-    await initStripe();
-  } catch(err) {
-    showError(err.message);
-    payBtn.disabled = true;
+  // Init Stripe immediately only if balance can't cover the order.
+  // If balance is sufficient the user may pay without touching Stripe at all;
+  // initialising it early would call POST /pay and move the order to
+  // PAYMENT_PENDING, making a subsequent balance-pay call fail.
+  var balanceSufficient = userBalance >= orderData.totalPrice;
+  if (!balanceSufficient) {
+    try {
+      await initStripe();
+    } catch(err) {
+      showError(err.message);
+      payBtn.disabled = true;
+    }
   }
 
   // ── 3. Balance toggle ─────────────────────────────────────────────────────
 
-  document.getElementById('balanceToggle').addEventListener('click', function() {
+  document.getElementById('balanceToggle').addEventListener('click', async function() {
     if (userBalance < orderData.totalPrice) return; // insufficient
     useBalance = !useBalance;
     toggleEl.classList.toggle('on', useBalance);
     document.getElementById('balanceToggle').classList.toggle('selected', useBalance);
     stripeContainer.style.display = useBalance ? 'none' : 'flex';
     payBtn.textContent = useBalance ? 'Pay with balance' : 'Pay securely';
+    // If the user switches back to card, init Stripe now (lazily)
+    if (!useBalance) {
+      try {
+        payBtn.disabled = true;
+        await initStripe();
+        payBtn.disabled = false;
+      } catch(err) {
+        showError(err.message);
+      }
+    }
   });
 
   // ── 4. Pay button ─────────────────────────────────────────────────────────

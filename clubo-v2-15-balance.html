@@ -300,16 +300,8 @@
   }
 
   function loadBalance() {
-    var token = ClubAuth.getToken();
-    if (!token) return;
-
-    fetch((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'https://clubo-api-production.up.railway.app' : 'https://clubo-api-production.up.railway.app') + '/me/balance', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    })
-    .then(function(r){ return r.json(); })
+    ClubAuth.apiFetch('/me/balance')
     .then(function(d){
-      if (!d.ok) throw new Error(d.error || 'Failed');
       balanceCents = d.balance;
       document.getElementById('balFigure').textContent = fmt(balanceCents);
       document.getElementById('balSub').textContent =
@@ -326,12 +318,8 @@
     });
 
     // load withdrawal history separately
-    fetch((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'https://clubo-api-production.up.railway.app' : 'https://clubo-api-production.up.railway.app') + '/withdrawals', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){ if (d.ok) renderWithdrawals(d.withdrawals); })
+    ClubAuth.apiFetch('/withdrawals')
+    .then(function(d){ renderWithdrawals(d.withdrawals); })
     .catch(function(){});
   }
 
@@ -346,11 +334,7 @@
   document.getElementById('withdrawBtn').addEventListener('click', async function(){
     // Check Stripe Connect status before showing modal
     try {
-      var token   = ClubAuth.getToken();
-      var API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? 'https://clubo-api-production.up.railway.app' : 'https://clubo-api-production.up.railway.app';
-      var res  = await fetch(API_URL + '/connect/status', { headers: { 'Authorization': 'Bearer ' + token } });
-      var data = await res.json();
+      var data = await ClubAuth.apiFetch('/connect/status');
       if (!data.ok || data.status !== 'verified') {
         window.cluboNavigate('clubo-v2-16-connect.html');
         return;
@@ -392,16 +376,8 @@
     confirmBtn.disabled = true;
     confirmBtn.textContent = 'Processing…';
 
-    var token = ClubAuth.getToken();
-    fetch((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'https://clubo-api-production.up.railway.app' : 'https://clubo-api-production.up.railway.app') + '/withdrawals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ amount: cents })
-    })
-    .then(function(r){ return r.json(); })
+    ClubAuth.apiFetch('/withdrawals', { method: 'POST', body: JSON.stringify({ amount: cents }) })
     .then(function(d){
-      if (!d.ok) throw new Error(d.error || 'Withdrawal failed');
       overlay.classList.remove('open');
       confirmBtn.textContent = 'Confirm withdrawal';
       loadBalance(); // refresh

@@ -425,7 +425,7 @@ async function acceptOffer() {
   try {
     var result = await ClubAuth.acceptSellOffer(currentSellOffer.id);
     if (result.status === 'PAID' || result.status === 'ACCEPTED') {
-      window.location.href = amSeller ? 'clubo-v2-11-seller-sold.html' : 'clubo-v2-08a-tickets-locked.html';
+      window.cluboNavigate(amSeller ? 'clubo-v2-11-seller-sold.html' : 'clubo-v2-08a-tickets-locked.html');
     } else if (result.status === 'REQUIRES_ACTION') {
       var confirmResult = await stripe.confirmCardPayment(result.clientSecret);
       if (confirmResult.error) {
@@ -435,7 +435,7 @@ async function acceptOffer() {
         return;
       }
       await ClubAuth.confirmSellOfferPayment(currentSellOffer.id, confirmResult.paymentIntent.id);
-      window.location.href = amSeller ? 'clubo-v2-11-seller-sold.html' : 'clubo-v2-08a-tickets-locked.html';
+      window.cluboNavigate(amSeller ? 'clubo-v2-11-seller-sold.html' : 'clubo-v2-08a-tickets-locked.html');
     } else {
       // Re-render with updated state
       var updated = await ClubAuth.getSellOffer(currentSellOffer.id);

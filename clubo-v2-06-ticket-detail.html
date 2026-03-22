@@ -70,11 +70,11 @@
       <div class="top-title">Clubo</div>
     </div>
   <div class="screen">
-    <a class="back-row" href="clubo-v2-05-listings-mondays.html" aria-label="Back to Listings"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Listings</span></a>
+    <a class="back-row" id="backLink" href="clubo-v2-05-listings-mondays.html" aria-label="Back to Listings"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Listings</span></a>
 
     <div class="ev-header">
-      <div class="ev-venue">Fabrik Madrid</div>
-      <div class="ev-name">Mondays</div>
+      <div class="ev-venue" id="evVenue">Fabrik Madrid</div>
+      <div class="ev-name" id="evName">Mondays</div>
     </div>
 
     <div class="countdown-strip">
@@ -85,7 +85,7 @@
     <!-- Ticket preview with blurred QR -->
     <div class="ticket-preview">
       <div class="ticket-bg">
-        <div class="ticket-bg-text">Mondays</div>
+        <div class="ticket-bg-text" id="ticketBgText">Mondays</div>
         <div class="ticket-bg-sub">General Admission</div>
         <div class="ticket-bg-venue">Fabrik Madrid · 24.02.25</div>
         <!-- Blurred QR -->
@@ -108,7 +108,7 @@
       </div>
       <div class="seller-row">
         <div class="trust-badge"><div class="trust-dot"></div><div class="trust-text">Clean seller</div></div>
-        <div class="seller-meta">Carlos M. · 47 trades</div>
+        <div class="seller-meta" id="sellerMeta">Loading…</div>
       </div>
     </div>
 
@@ -120,9 +120,9 @@
 
     <!-- Price breakdown -->
     <div class="breakdown">
-      <div class="br-row"><span class="br-lbl">Ticket price</span><span class="br-val">€12.00</span></div>
-      <div class="br-row"><span class="br-lbl">Platform fee</span><span class="br-val">€1.20</span></div>
-      <div class="br-row total"><span class="br-lbl">Total</span><span class="br-val">€13.20</span></div>
+      <div class="br-row"><span class="br-lbl">Ticket price</span><span class="br-val" id="priceTicket">—</span></div>
+      <div class="br-row"><span class="br-lbl">Platform fee</span><span class="br-val" id="priceFee">—</span></div>
+      <div class="br-row total"><span class="br-lbl">Total</span><span class="br-val" id="priceTotal">—</span></div>
     </div>
 
     <div class="cta-area">
@@ -178,6 +178,65 @@ tick();setInterval(tick,1000);
 <script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
 <script src="transition.js" defer></script>
 <script>
+window.addEventListener('DOMContentLoaded', async function() {
+  var VENUE_MAP = { mondays: 'Fabrik Madrid', istar: 'Istar Madrid' };
+  var NAME_MAP  = { mondays: 'Mondays',       istar: 'Istar' };
+
+  var params    = new URLSearchParams(location.search);
+  var listingId = params.get('listingId') || localStorage.getItem('clubo_viewing_listing');
+
+  var errEl = document.getElementById('buy-error');
+
+  if (!listingId) {
+    errEl.textContent = 'No listing selected. Go back and choose a ticket.';
+    errEl.style.display = 'block';
+    document.getElementById('sellerMeta').textContent = '—';
+    return;
+  }
+
+  // Store so buy handler can read it unchanged
+  localStorage.setItem('clubo_viewing_listing', listingId);
+
+  try {
+    var listings = await ClubAuth.getListings();
+    var listing  = listings && listings.find(function(l) { return l.id === listingId; });
+
+    if (!listing) {
+      errEl.textContent = 'Listing not found or no longer available.';
+      errEl.style.display = 'block';
+      document.getElementById('sellerMeta').textContent = '—';
+      return;
+    }
+
+    var ev     = listing.event || 'mondays';
+    var venue  = VENUE_MAP[ev] || listing.eventLabel || ev;
+    var name   = NAME_MAP[ev]  || listing.title || ev;
+
+    document.getElementById('evVenue').textContent      = venue;
+    document.getElementById('evName').textContent       = name;
+    document.getElementById('ticketBgText').textContent = name;
+
+    var backLink = document.getElementById('backLink');
+    backLink.href = ev === 'istar' ? 'clubo-v2-05-listings-istar.html' : 'clubo-v2-05-listings-mondays.html';
+
+    var av = ClubAuth.avatarFor(listing.seller ? listing.seller.id : '');
+    document.getElementById('sellerMeta').textContent = av.initials + ' · seller';
+
+    var price    = listing.price;                          // cents
+    var fee      = Math.round(price * 0.10);
+    var total    = price + fee;
+    document.getElementById('priceTicket').textContent = ClubAuth.formatPrice(price);
+    document.getElementById('priceFee').textContent    = ClubAuth.formatPrice(fee);
+    document.getElementById('priceTotal').textContent  = ClubAuth.formatPrice(total);
+
+  } catch(e) {
+    errEl.textContent = 'Could not load listing details. Try again.';
+    errEl.style.display = 'block';
+    document.getElementById('sellerMeta').textContent = '—';
+  }
+});
+</script>
+<script>
 document.getElementById('buyBtn').addEventListener('click', async function(){
   var btn   = document.getElementById('buyBtn');
   var errEl = document.getElementById('buy-error');
@@ -207,7 +266,7 @@ document.getElementById('buyBtn').addEventListener('click', async function(){
 });
 
 document.getElementById('offerBtn').addEventListener('click', function() {
-  window.location.href = 'clubo-v2-17-offer.html';
+  window.cluboNavigate('clubo-v2-17-offer.html');
 });
 </script>
 </body>

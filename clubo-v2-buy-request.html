@@ -227,7 +227,7 @@ async function submitRequest() {
       savedSetupIntentId,
       savedPaymentMethodId
     );
-    window.location.href = 'clubo-v2-08a-tickets-locked.html';
+    window.cluboNavigate('clubo-v2-08a-tickets-locked.html');
   } catch(e) {
     errEl.textContent = e.message || 'Could not post request';
     btn.disabled = false;

@@ -125,9 +125,15 @@ window.addEventListener('DOMContentLoaded', function() {
 
     var firstName = document.getElementById('inp-first').value.trim();
     var lastName  = document.getElementById('inp-last').value.trim();
-    var rawPhone  = itiInstance ? itiInstance.getNumber() : phoneEl.value.trim();
+    var rawPhone = itiInstance ? itiInstance.getNumber() : phoneEl.value.trim();
+    // getNumber() returns full E.164 when utils.js is loaded; if it hasn't
+    // loaded yet (slow connection) it returns just the digits — fall back to
+    // prepending the selected dial code manually.
     var phone = rawPhone;
-    if (phone && !phone.startsWith('+')) phone = '+' + phone;
+    if (phone && !phone.startsWith('+')) {
+      var dialCode = itiInstance ? itiInstance.getSelectedCountryData().dialCode : null;
+      phone = dialCode ? '+' + dialCode + phone.replace(/\D/g,'') : '+' + phone.replace(/\D/g,'');
+    }
 
     if (!firstName) { errEl.textContent = 'Please enter your first name.'; return; }
     if (!phone || phone.replace(/\D/g,'').length < 7) { errEl.textContent = 'Please enter a valid phone number.'; return; }
