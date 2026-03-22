@@ -194,7 +194,7 @@ window.addEventListener('DOMContentLoaded', function(){
           '<div class="seller-name">' + escHtml(listing.title) + '</div>',
           '<div class="seller-trades">Listed just now</div>',
         '</div>',
-        '<a class="view-btn" href="clubo-v2-06-ticket-detail.html">View Ticket</a>',
+        '<a class="view-btn" href="clubo-v2-06-ticket-detail.html?listingId=' + escHtml(listing.id) + '">View Ticket</a>',
       '</div>'
     ].join('');
   }
@@ -225,11 +225,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
     if (active.length === 0 && sold.length === 0) { renderEmpty(); }
     else {
-      scroll.innerHTML = soldHtml + activeHtml;
-      if (sold.length > 0) {
-        var firstActive = scroll.querySelector('.ticket-card:not(.sold-card)');
-        if (firstActive) firstActive.scrollIntoView();
-      }
+      scroll.innerHTML = activeHtml + soldHtml;
       if(countEl) countEl.innerHTML = '<strong>' + active.length + '</strong> tickets available';
       scroll.querySelectorAll('.ticket-card[data-listing-id]').forEach(function(card){
         var link = card.querySelector('.view-btn');

@@ -267,9 +267,9 @@ function loadBuyRequests() {
         : '<span class="br-card-badge" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:rgba(255,255,255,.3);">Waiting</span>';
 
       var firstOffer = r.sellOffers && r.sellOffers.find(function(s){ return ['PENDING','COUNTERED'].includes(s.status); });
-      var viewHref = firstOffer
-        ? 'clubo-v2-sell-offer.html?sellOfferId=' + encodeURIComponent(firstOffer.id)
-        : '#';
+      var viewBtn = firstOffer
+        ? '<a class="btn-view-offers" href="clubo-v2-sell-offer.html?sellOfferId=' + encodeURIComponent(firstOffer.id) + '">View Offers</a>'
+        : '<button class="btn-view-offers" disabled style="opacity:.35;cursor:default;">No offers yet</button>';
 
       html += '<div class="br-card" data-id="' + r.id + '">'
         + '<div class="br-card-top"><div class="br-card-event">' + eventLabel + '</div>' + badgeHtml + '</div>'
@@ -278,7 +278,7 @@ function loadBuyRequests() {
         + '<div class="br-card-price">€' + Math.floor(r.pricePerTicket / 100) + ' <span style="font-size:10px;font-weight:300;font-family:DM Sans,sans-serif;color:rgba(255,255,255,.3);">/ ticket</span></div>'
         + '</div>'
         + '<div class="br-card-btns">'
-        + '<a class="btn-view-offers" href="' + viewHref + '">View Offers</a>'
+        + viewBtn
         + '<button class="btn-cancel-req">Cancel</button>'
         + '</div>'
         + '</div>';

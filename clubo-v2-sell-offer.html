@@ -425,7 +425,7 @@ async function acceptOffer() {
   try {
     var result = await ClubAuth.acceptSellOffer(currentSellOffer.id);
     if (result.status === 'PAID' || result.status === 'ACCEPTED') {
-      window.location.href = 'clubo-v2-08a-tickets-locked.html';
+      window.location.href = amSeller ? 'clubo-v2-11-seller-sold.html' : 'clubo-v2-08a-tickets-locked.html';
     } else if (result.status === 'REQUIRES_ACTION') {
       var confirmResult = await stripe.confirmCardPayment(result.clientSecret);
       if (confirmResult.error) {
@@ -435,7 +435,7 @@ async function acceptOffer() {
         return;
       }
       await ClubAuth.confirmSellOfferPayment(currentSellOffer.id, confirmResult.paymentIntent.id);
-      window.location.href = 'clubo-v2-08a-tickets-locked.html';
+      window.location.href = amSeller ? 'clubo-v2-11-seller-sold.html' : 'clubo-v2-08a-tickets-locked.html';
     } else {
       // Re-render with updated state
       var updated = await ClubAuth.getSellOffer(currentSellOffer.id);
@@ -487,6 +487,11 @@ async function sendBuyerCounter() {
   errEl.textContent = '';
   var priceCents = Math.round(parseFloat(input.value) * 100);
   if (isNaN(priceCents) || priceCents <= 0) { errEl.textContent = 'Enter a valid price'; return; }
+  var buyerFloor = currentSellOffer.buyOrder ? currentSellOffer.buyOrder.pricePerTicket : 0;
+  if (buyerFloor > 0 && priceCents < buyerFloor) {
+    errEl.textContent = 'Minimum €' + Math.floor(buyerFloor / 100) + ' (your original offer)';
+    return;
+  }
   var btn = document.getElementById('btn-buyer-send-counter');
   btn.disabled = true; btn.textContent = 'Sending…';
   try {

@@ -204,18 +204,19 @@ async function submitRequest() {
   btn.disabled = true;
   document.getElementById('submit-label').innerHTML = '<div class="spinner"></div>';
   try {
-    var result = await stripe.confirmSetup({ elements, redirect: 'if_required' });
-    if (result.error) {
-      errEl.textContent = result.error.message;
-      btn.disabled = false;
-      document.getElementById('submit-label').textContent = 'Post Request';
-      return;
+    if (!savedSetupIntentId) {
+      var result = await stripe.confirmSetup({ elements, redirect: 'if_required' });
+      if (result.error) {
+        errEl.textContent = result.error.message;
+        btn.disabled = false;
+        document.getElementById('submit-label').textContent = 'Post Request';
+        return;
+      }
+      savedSetupIntentId = result.setupIntent.id;
+      savedPaymentMethodId = result.setupIntent.payment_method;
+      document.getElementById('stripe-element-container').style.display = 'none';
+      document.getElementById('payment-verified').style.display = 'flex';
     }
-    savedSetupIntentId = result.setupIntent.id;
-    savedPaymentMethodId = result.setupIntent.payment_method;
-    document.getElementById('stripe-element-container').style.display = 'none';
-    document.getElementById('payment-verified').style.display = 'flex';
-
     var eventVal = document.getElementById('event-select').value;
     var eventLabels = { mondays: 'Mondays · Fabrik Madrid', istar: 'Istar · Istar Madrid' };
     await ClubAuth.createBuyOrder(

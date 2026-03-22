@@ -69,6 +69,8 @@
 
     // Fade in only .screen — nav is already fully painted
     var screen = document.querySelector('.screen');
+    var lh = document.getElementById('listingsHeader');
+    var ts = document.getElementById('ticketsScroll');
     var phone = document.querySelector('.phone');
 
     function fadeIn(el, delay){
@@ -83,6 +85,9 @@
 
     if(screen){
       fadeIn(screen, 0);
+    } else if(lh){
+      fadeIn(lh, 0);
+      if(ts) fadeIn(ts, 40);
     } else if(phone){
       fadeIn(phone, 0);
     }
