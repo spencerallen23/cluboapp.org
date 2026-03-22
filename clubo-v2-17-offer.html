@@ -259,9 +259,9 @@ var currentOffer = null, amBuyer = false;
 
 window.addEventListener('DOMContentLoaded', async function() {
   try {
-    var raw = localStorage.getItem('clubo_viewing_listing');
+    var raw = localStorage.getItem('clubo_viewing_listing_obj') || localStorage.getItem('clubo_viewing_listing');
     listing = raw ? JSON.parse(raw) : null;
-    if (!listing) { alert('No listing selected'); history.back(); return; }
+    if (!listing || typeof listing === 'string') { alert('No listing selected'); history.back(); return; }
 
     var existingOfferId = localStorage.getItem('clubo_viewing_offer');
     if (existingOfferId) {

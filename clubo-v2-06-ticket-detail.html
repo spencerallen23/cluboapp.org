@@ -194,7 +194,7 @@ window.addEventListener('DOMContentLoaded', async function() {
     return;
   }
 
-  // Store so buy handler can read it unchanged
+  // Store the ID so the buy handler can read it (string form)
   localStorage.setItem('clubo_viewing_listing', listingId);
 
   try {
@@ -228,6 +228,9 @@ window.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('priceTicket').textContent = ClubAuth.formatPrice(price);
     document.getElementById('priceFee').textContent    = ClubAuth.formatPrice(fee);
     document.getElementById('priceTotal').textContent  = ClubAuth.formatPrice(total);
+
+    // Store full listing object so the offer page can read it
+    localStorage.setItem('clubo_viewing_listing_obj', JSON.stringify(listing));
 
   } catch(e) {
     errEl.textContent = 'Could not load listing details. Try again.';
