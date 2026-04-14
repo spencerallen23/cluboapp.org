@@ -130,7 +130,7 @@
     <div class="section-lbl">Your asking price per ticket</div>
     <div class="price-input-row">
       <span class="price-prefix">€</span>
-      <input type="number" class="price-field" id="ask-price-field" placeholder="0" inputmode="decimal" min="0">
+      <input type="text" class="price-field" id="ask-price-field" placeholder="0" inputmode="decimal" pattern="[0-9]*">
     </div>
     <div class="price-hint" id="ask-price-hint">Enter your price — it must be at or above the buyer's offer.</div>
 
@@ -187,7 +187,7 @@
       <div id="seller-action-bar" style="display:none;">
         <div class="counter-panel" id="counter-panel">
           <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.3);text-align:center;margin-bottom:6px;">€ per ticket</div>
-          <input type="number" class="counter-input" id="counter-input" placeholder="0" inputmode="decimal">
+          <input type="text" class="counter-input" id="counter-input" placeholder="0" inputmode="decimal" pattern="[0-9]*">
           <div class="counter-hint" id="counter-hint"></div>
           <button class="btn-send-counter" id="btn-send-counter">Send Counter Offer</button>
         </div>
@@ -206,7 +206,7 @@
       <div id="buyer-action-bar" style="display:none;">
         <div class="counter-panel" id="buyer-counter-panel">
           <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.3);text-align:center;margin-bottom:6px;">€ per ticket</div>
-          <input type="number" class="counter-input" id="buyer-counter-input" placeholder="0" inputmode="decimal">
+          <input type="text" class="counter-input" id="buyer-counter-input" placeholder="0" inputmode="decimal" pattern="[0-9]*">
           <div class="counter-hint" id="buyer-counter-hint"></div>
           <button class="btn-send-counter" id="btn-buyer-send-counter">Send Counter Offer</button>
         </div>
@@ -275,10 +275,9 @@ async function loadMakeOfferView(buyOrderId) {
   document.getElementById('boc-price').textContent = '€' + Math.floor(buyOrder.pricePerTicket / 100);
   qty = buyOrder.quantity;
 
-  // Pre-fill price at buyer's offer
   var priceField = document.getElementById('ask-price-field');
-  priceField.value = (buyOrder.pricePerTicket / 100).toFixed(0);
-  document.getElementById('ask-price-hint').textContent = 'Min €' + Math.floor(buyOrder.pricePerTicket / 100) + ' (buyer\'s offer) — charge more to make profit';
+  priceField.placeholder = Math.floor(buyOrder.pricePerTicket / 100).toString();
+  document.getElementById('ask-price-hint').textContent = 'Enter your price per ticket (min €' + Math.floor(buyOrder.pricePerTicket / 100) + ')';
   updateTotal();
 
   priceField.addEventListener('input', updateTotal);
