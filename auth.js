@@ -319,9 +319,14 @@
   async function getBuyOrder(id)     { return (await apiFetch('/buy-orders/' + id)).buyOrder; }
 
   // ── Sell Offers API ────────────────────────────────────────────────────────
-  async function createSellOffer(buyOrderId, pricePerTicket, quantity) {
-    var data = await apiFetch('/buy-orders/' + buyOrderId + '/sell-offer', { method: 'POST', body: JSON.stringify({ pricePerTicket, quantity }) });
+  async function createSellOffer(buyOrderId, pricePerTicket, quantity, ticketAssetUrl) {
+    var body = { pricePerTicket, quantity };
+    if (ticketAssetUrl) body.ticketAssetUrl = ticketAssetUrl;
+    var data = await apiFetch('/buy-orders/' + buyOrderId + '/sell-offer', { method: 'POST', body: JSON.stringify(body) });
     return data.sellOffer;
+  }
+  async function getSellOfferTicketUploadUrl(contentType) {
+    return apiFetch('/upload/sell-offer-pre-ticket-url', { method: 'POST', body: JSON.stringify({ contentType: contentType || 'image/jpeg' }) });
   }
   async function getMySellOffers()    { return (await apiFetch('/sell-offers/mine')).sellOffers; }
   async function getBuyerSellOffers() { return (await apiFetch('/sell-offers/buyer')).sellOffers; }
@@ -405,6 +410,7 @@
     getBuyOrder:      getBuyOrder,
 
     // Sell Offers
+    getSellOfferTicketUploadUrl: getSellOfferTicketUploadUrl,
     createSellOffer:          createSellOffer,
     getMySellOffers:          getMySellOffers,
     getBuyerSellOffers:       getBuyerSellOffers,

@@ -146,9 +146,26 @@
       <div class="total-val" id="total-display">€—</div>
     </div>
 
+    <div class="section-lbl">Proof of Ticket</div>
+    <div id="ticket-upload-area" style="margin-bottom:20px;">
+      <label id="ticket-upload-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.15);border-radius:12px;padding:22px 16px;cursor:pointer;">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="3" y="3" width="22" height="22" rx="4" stroke="rgba(255,255,255,.3)" stroke-width="1.4"/><path d="M14 9v10M9 14h10" stroke="rgba(255,255,255,.4)" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span style="font-size:13px;font-weight:400;color:rgba(255,255,255,.5);">Upload ticket photo</span>
+        <span style="font-size:11px;font-weight:300;color:rgba(255,255,255,.25);">Required before sending offer</span>
+        <input type="file" id="ticket-file-input" accept="image/*,application/pdf" style="display:none;">
+      </label>
+      <div id="ticket-preview" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span id="ticket-filename" style="font-size:13px;font-weight:400;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;"></span>
+          <button id="ticket-remove-btn" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;padding:0 4px;">Remove</button>
+        </div>
+        <div id="ticket-scan-status" style="font-size:12px;font-weight:400;color:rgba(255,255,255,.4);">Uploading…</div>
+      </div>
+    </div>
+
     <div class="error-msg" id="make-error"></div>
-    <button class="btn-primary" id="submit-offer-btn">
-      <span id="submit-label">Send Offer</span>
+    <button class="btn-primary" id="submit-offer-btn" disabled>
+      <span id="submit-label">Upload Ticket First</span>
     </button>
     <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.2);text-align:center;margin-top:10px;line-height:1.5;">
       Buyer's card will only be charged if they accept.
@@ -229,7 +246,7 @@
 <script>window.addEventListener("DOMContentLoaded",function(){if(typeof ClubAuth!=="undefined")ClubAuth.requireAuth();});</script>
 <script src="transition.js" defer></script>
 <script>
-var stripe = Stripe('pk_test_51Ra0YJRwwM9yytUgFLzXpPyEkrMrCXU1SXmyEEfnHRrMISlbRaVa8NNqKktT1L1amqFCLLwBYH1g3d30x9gN8oFl00vJpxhUFi');
+var stripe = Stripe('pk_test_51T7YjnRwwM9yytUgoU0k5r7YRgTasnCd55uHBvU007YzWxktoOQkdFuwHaOXTalFNgNpgxxE0XiiXh5cvNLq7uaX00fXrAIJ7r');
 var currentSellOffer = null, amSeller = false;
 var buyOrder = null, qty = 1, maxQty = 1;
 
@@ -276,7 +293,47 @@ async function loadMakeOfferView(buyOrderId) {
   document.getElementById('qty-plus').addEventListener('click', function() { if(qty<maxQty){qty++;updateQtyDisplay();} });
   priceField.addEventListener('input', updateTotal);
   document.getElementById('submit-offer-btn').addEventListener('click', submitSellOffer);
+
+  // Ticket upload
+  document.getElementById('ticket-file-input').addEventListener('change', handleTicketFile);
+  document.getElementById('ticket-remove-btn').addEventListener('click', function() {
+    uploadedTicketUrl = null;
+    document.getElementById('ticket-preview').style.display = 'none';
+    document.getElementById('ticket-upload-label').style.display = 'flex';
+    document.getElementById('ticket-file-input').value = '';
+    document.getElementById('submit-offer-btn').disabled = true;
+    document.getElementById('submit-label').textContent = 'Upload Ticket First';
+  });
+
   showView('make');
+}
+
+var uploadedTicketUrl = null;
+
+async function handleTicketFile(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var errEl = document.getElementById('make-error');
+  errEl.textContent = '';
+  document.getElementById('ticket-upload-label').style.display = 'none';
+  document.getElementById('ticket-preview').style.display = 'block';
+  document.getElementById('ticket-filename').textContent = file.name;
+  document.getElementById('ticket-scan-status').textContent = 'Uploading…';
+  document.getElementById('submit-offer-btn').disabled = true;
+  document.getElementById('submit-label').textContent = 'Scanning ticket…';
+  try {
+    var urlData = await ClubAuth.getSellOfferTicketUploadUrl(file.type || 'image/jpeg');
+    await ClubAuth.uploadFileToS3(urlData.uploadUrl, file);
+    uploadedTicketUrl = urlData.publicUrl;
+    // Scan result will be returned by the API on submit; show upload success for now
+    document.getElementById('ticket-scan-status').textContent = '✓ Uploaded — scan will run on submit';
+    document.getElementById('submit-offer-btn').disabled = false;
+    document.getElementById('submit-label').textContent = 'Send Offer';
+  } catch(e2) {
+    errEl.textContent = e2.message || 'Upload failed';
+    document.getElementById('ticket-scan-status').textContent = 'Upload failed';
+    document.getElementById('ticket-remove-btn').click();
+  }
 }
 
 function updateQtyDisplay() {
@@ -293,6 +350,7 @@ async function submitSellOffer() {
   var btn = document.getElementById('submit-offer-btn');
   var errEl = document.getElementById('make-error');
   errEl.textContent = '';
+  if (!uploadedTicketUrl) { errEl.textContent = 'Please upload proof of your ticket first'; return; }
   var priceEuros = parseFloat(document.getElementById('ask-price-field').value);
   if (isNaN(priceEuros) || priceEuros <= 0) { errEl.textContent = 'Enter a valid price'; return; }
   var priceCents = Math.round(priceEuros * 100);
@@ -303,7 +361,7 @@ async function submitSellOffer() {
   btn.disabled = true;
   document.getElementById('submit-label').innerHTML = '<div class="spinner"></div>';
   try {
-    var sellOffer = await ClubAuth.createSellOffer(buyOrder.id, priceCents, qty);
+    var sellOffer = await ClubAuth.createSellOffer(buyOrder.id, priceCents, qty, uploadedTicketUrl);
     currentSellOffer = sellOffer;
     amSeller = true;
     await renderThread(currentSellOffer);

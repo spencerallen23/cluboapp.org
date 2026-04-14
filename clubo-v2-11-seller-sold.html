@@ -246,15 +246,8 @@ function renderOrders(orders) {
       + '<div class="oc2-top"><div class="oc2-event">' + esc(eventLabel) + ' · ' + o.quantity + ' ticket' + (o.quantity > 1 ? 's' : '') + '</div>'
       + '<div class="oc2-amount">€' + (o.totalPrice / 100).toFixed(2) + '</div></div>'
       + '<div class="oc2-buyer">Buyer: ' + esc(buyerDisplay) + ' · ' + o.status + '</div>'
-      + (needsAction ? '<button class="deliver-btn" onclick="markDelivered(\'' + o.id + '\', this)">I Have Transferred the Ticket →</button>' : '')
       + '</div>';
   }).join('');
-}
-
-async function markDelivered(orderId, btn) {
-  btn.disabled = true; btn.textContent = 'Confirming…';
-  try { await ClubAuth.apiFetch('/orders/' + orderId + '/deliver', { method: 'POST' }); await loadAll(); }
-  catch(e) { btn.disabled = false; btn.textContent = 'I Have Transferred the Ticket →'; alert(e.message); }
 }
 
 async function openChat(offerId) {

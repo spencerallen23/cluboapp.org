@@ -465,12 +465,12 @@ async function acceptOffer() {
     var result = await ClubAuth.apiFetch('/offers/' + currentOffer.id + '/accept', { method:'POST' });
     if (result.status === 'PAID') {
       localStorage.setItem('clubo_pending_order', result.orderId);
-      window.location.href = 'clubo-v2-07b-processing-added.html';
+      window.cluboNavigate('clubo-v2-07b-processing-added.html');
     } else if (result.status === 'REQUIRES_ACTION') {
       var confirmResult = await stripe.confirmCardPayment(result.clientSecret);
       if (confirmResult.error) { errEl.textContent=confirmResult.error.message; btn.disabled=false; btn.textContent=amBuyer?'Accept & Pay':'Accept & Charge Buyer'; return; }
       await ClubAuth.apiFetch('/offers/'+currentOffer.id+'/confirm-payment', { method:'POST', body:JSON.stringify({paymentIntentId:confirmResult.paymentIntent.id}) });
-      window.location.href = 'clubo-v2-07b-processing-added.html';
+      window.cluboNavigate('clubo-v2-07b-processing-added.html');
     }
   } catch(e) {
     errEl.textContent = e.message || 'Payment failed';
