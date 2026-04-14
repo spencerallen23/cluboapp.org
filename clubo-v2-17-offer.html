@@ -116,7 +116,7 @@
 
   <!-- ── View: Make Offer ── -->
   <div id="view-make" class="view active" style="overflow-y:auto;padding:calc(74px + env(safe-area-inset-top)) 22px calc(100px + env(safe-area-inset-bottom));">
-    <div class="back-row" onclick="history.back()">
+    <div class="back-row" onclick="window.cluboNavigate('clubo-v2-06-ticket-detail.html')">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="rgba(255,255,255,.6)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span>Back</span>
     </div>
@@ -271,7 +271,10 @@ window.addEventListener('DOMContentLoaded', async function() {
     }
     setupMakeView();
     await initStripe();
-  } catch(e) { console.error(e); }
+  } catch(e) {
+    console.error(e);
+    document.getElementById('make-error').textContent = e.message || 'Failed to load page';
+  }
 });
 
 function setupMakeView() {
