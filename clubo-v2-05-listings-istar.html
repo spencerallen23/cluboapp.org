@@ -236,7 +236,7 @@ window.addEventListener('DOMContentLoaded', function(){
     }
 
     // Buy requests section
-    var openRequests = buyOrders.filter(function(r){ return r.status === 'OPEN'; });
+    var openRequests = buyOrders; // API already filters to OPEN only
     var divider = '<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-lbl">Buy Requests</div><div class="section-divider-line"></div></div>';
     var meId = me && me.id;
     var requestsHtml;
@@ -245,7 +245,7 @@ window.addEventListener('DOMContentLoaded', function(){
     } else {
       requestsHtml = openRequests.map(function(r) {
         var av = ClubAuth.avatarFor(r.buyer && r.buyer.phone ? r.buyer.phone : r.id);
-        var isOwner = meId && r.buyerId === meId;
+        var isOwner = meId && r.buyer && r.buyer.id === meId;
         var offerBtn = isOwner
           ? '<div style="height:34px;padding:0 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;font-size:10px;color:rgba(255,255,255,.3);display:flex;align-items:center;">Your request</div>'
           : '<a class="offer-btn" href="clubo-v2-sell-offer.html?buyOrderId=' + escHtml(r.id) + '">Make an offer</a>';
