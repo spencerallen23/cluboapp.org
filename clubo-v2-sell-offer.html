@@ -127,13 +127,6 @@
       </div>
     </div>
 
-    <div class="section-lbl">Quantity</div>
-    <div class="qty-row">
-      <button class="qty-btn" id="qty-minus">−</button>
-      <div class="qty-val" id="qty-display">1</div>
-      <button class="qty-btn" id="qty-plus">+</button>
-    </div>
-
     <div class="section-lbl">Your asking price per ticket</div>
     <div class="price-input-row">
       <span class="price-prefix">€</span>
@@ -280,8 +273,7 @@ async function loadMakeOfferView(buyOrderId) {
   document.getElementById('boc-qty').textContent = buyOrder.quantity + ' ticket' + (buyOrder.quantity > 1 ? 's' : '') + ' requested';
   document.getElementById('boc-hint').textContent = 'Buyer offering €' + Math.floor(buyOrder.pricePerTicket / 100) + ' — you can charge more';
   document.getElementById('boc-price').textContent = '€' + Math.floor(buyOrder.pricePerTicket / 100);
-  maxQty = buyOrder.quantity;
-  qty = 1;
+  qty = buyOrder.quantity;
 
   // Pre-fill price at buyer's offer
   var priceField = document.getElementById('ask-price-field');
@@ -289,8 +281,6 @@ async function loadMakeOfferView(buyOrderId) {
   document.getElementById('ask-price-hint').textContent = 'Min €' + Math.floor(buyOrder.pricePerTicket / 100) + ' (buyer\'s offer) — charge more to make profit';
   updateTotal();
 
-  document.getElementById('qty-minus').addEventListener('click', function() { if(qty>1){qty--;updateQtyDisplay();} });
-  document.getElementById('qty-plus').addEventListener('click', function() { if(qty<maxQty){qty++;updateQtyDisplay();} });
   priceField.addEventListener('input', updateTotal);
   document.getElementById('submit-offer-btn').addEventListener('click', submitSellOffer);
 
@@ -322,7 +312,9 @@ async function handleTicketFile(e) {
   document.getElementById('submit-offer-btn').disabled = true;
   document.getElementById('submit-label').textContent = 'Scanning ticket…';
   try {
-    var urlData = await ClubAuth.getSellOfferTicketUploadUrl(file.type || 'image/jpeg');
+    var allowed = ['image/jpeg','image/png','image/webp','application/pdf'];
+    var ct = allowed.includes(file.type) ? file.type : 'image/jpeg';
+    var urlData = await ClubAuth.getSellOfferTicketUploadUrl(ct);
     await ClubAuth.uploadFileToS3(urlData.uploadUrl, file);
     uploadedTicketUrl = urlData.publicUrl;
     // Scan result will be returned by the API on submit; show upload success for now
