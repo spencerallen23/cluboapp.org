@@ -117,14 +117,18 @@ function makeQR() {
 
 function buildCard(order) {
   var l = order.listing;
-  var eventLabel = l.event === 'mondays' ? 'Mondays · Fabrik Madrid'
-                 : l.event === 'istar'   ? 'Istar · Istar Madrid'
-                 : (l.eventLabel || l.title);
-  var eventShort = l.event === 'mondays' ? 'Mondays'
-                 : l.event === 'istar'   ? 'Istar'
-                 : l.title;
+  var so = order.sellOffer;
+  // Derive event from listing (direct purchase) or sell offer (buy-request match)
+  var rawEvent = l ? l.event : (so ? so.event : 'other');
+  var rawLabel = l ? (l.eventLabel || l.title) : (so ? (so.eventLabel || so.event) : 'Ticket');
+  var eventLabel = rawEvent === 'mondays' ? 'Mondays · Fabrik Madrid'
+                 : rawEvent === 'istar'   ? 'Istar · Istar Madrid'
+                 : rawLabel;
+  var eventShort = rawEvent === 'mondays' ? 'Mondays'
+                 : rawEvent === 'istar'   ? 'Istar'
+                 : rawLabel;
   var isPaid  = ['PAID','DELIVERED','COMPLETED','DISPUTE_OPEN','DISPUTE_RESOLVED'].includes(order.status);
-  var isLocked = isPaid && l.unlockTime && new Date() < new Date(l.unlockTime);
+  var isLocked = isPaid && l && l.unlockTime && new Date() < new Date(l.unlockTime);
   var s = STATUS_MAP[order.status] || { label: order.status, color: 'rgba(255,255,255,.4)', bg: 'rgba(255,255,255,.06)' };
 
   var card = document.createElement('div');
@@ -212,8 +216,8 @@ function buildCard(order) {
     resellBtn.textContent = 'Resell this ticket';
     resellBtn.addEventListener('click', function() {
       // Pre-fill the sell screen with this event
-      localStorage.setItem('clubo_resell_event', l.event);
-      localStorage.setItem('clubo_resell_event_label', l.eventLabel || '');
+      localStorage.setItem('clubo_resell_event', rawEvent);
+      localStorage.setItem('clubo_resell_event_label', rawLabel);
       window.cluboNavigate('clubo-v2-09-sell.html');
     });
     card.appendChild(resellBtn);
