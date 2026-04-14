@@ -106,8 +106,12 @@ window.addEventListener('DOMContentLoaded', function() {
     initialCountry: 'us',
     preferredCountries: ['us','es','gb','fr','de'],
     separateDialCode: true,
+    dropdownContainer: document.body,
     utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js',
   });
+  // Prevent the flag button from auto-opening the dropdown on desktop
+  var flagBtn = document.querySelector('.iti__flag-container');
+  if (flagBtn) flagBtn.setAttribute('tabindex', '-1');
 
   ['inp-first','inp-last'].forEach(function(id, i, arr) {
     document.getElementById(id).addEventListener('keydown', function(e) {
